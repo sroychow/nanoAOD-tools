@@ -140,7 +140,7 @@ variables =  {
         'GenV_bare_y': HistoDict(('GenV_bare%s_y' % muon_pf),"y",100,-10,10,"(genVtype==14 || genVtype==13)"),
         'GenV_bare_qt' : HistoDict(('GenV_bare%s_qt' % muon_pf),"P_{T} [GeV]",100,0,200,"(genVtype==14 || genVtype==13)"),
         'GenV_bare_CStheta' : HistoDict(('GenV_bare%s_CStheta' % muon_pf),"$\Theta$",100,-1,1,"(genVtype==14 || genVtype==13)"),
-        'GenV_bare_CSphi'  : HistoDict(('GenV_bare%s_CSphi' % muon_pf),"$\phi$",30,0,2*math.pi,"(genVtype==14 || genVtype==13)"),
+        'GenV_bare_CSphi'  : HistoDict(('GenV_bare%s_CSphi' % muon_pf),"$\phi$",30,-math.pi,math.pi,"(genVtype==14 || genVtype==13)"),
         'PV_npvsGood' : HistoDict('PV_npvsGood',"N",100,0,100,"1"),
 
     },
@@ -162,20 +162,21 @@ variables =  {
         'RecoZ_Muon_y': HistoDict(('RecoZ_Muon%s_y' % muon_pf),"y",100,-10,10,"1"),
         'RecoZ_Muon_pt': HistoDict(('RecoZ_Muon%s_pt' % muon_pf),"P_{T} [GeV]",100,0,200,"1"),
         'RecoZ_Muon_CStheta': HistoDict(('RecoZ_Muon%s_CStheta' % muon_pf),"$\Theta$",100,-1,1,"1"),
-        'RecoZ_Muon_CSphi': HistoDict(('RecoZ_Muon%s_CSphi' % muon_pf),"$\phi$",30,0,2*math.pi,"1"),
+        'RecoZ_Muon_CSphi': HistoDict(('RecoZ_Muon%s_CSphi' % muon_pf),"$\phi$",30,-math.pi,math.pi,"1"),
         'RecoZ_Muon_MET_uPar' : HistoDict(('RecoZ_Muon_MET%s_uPar' % met_pf),"P_{T} [GeV]",100,-200,200,"1"),
         'RecoZ_Muon_MET_uPer' : HistoDict(('RecoZ_Muon_MET%s_uPer' % met_pf),"P_{T} [GeV]",100,-200,200,"1"),
         'GenFromRecoZ_GenMuon_bare_mass' : HistoDict(('GenFromRecoZ_GenMuon_bare%s_mass' % muon_pf),"M [GeV]",100,0,200,"1"),
         'GenFromRecoZ_GenMuon_bare_y': HistoDict(('GenFromRecoZ_GenMuon_bare%s_y' % muon_pf),"y",100,-10,10,"1"),
         'GenFromRecoZ_GenMuon_bare_pt' : HistoDict(('GenFromRecoZ_GenMuon_bare%s_pt' % muon_pf),"P_{T} [GeV]",100,0,200,"1"),
         'GenFromRecoZ_GenMuon_bare_CStheta' : HistoDict(('GenFromRecoZ_GenMuon_bare%s_CStheta' % muon_pf),"$\Theta$",100,-1,1,"1"),
-        'GenFromRecoZ_GenMuon_bare_CSphi'  : HistoDict(('GenFromRecoZ_GenMuon_bare%s_CSphi' % muon_pf),"$\phi$",30,0,2*math.pi,"1"),
+        'GenFromRecoZ_GenMuon_bare_CSphi'  : HistoDict(('GenFromRecoZ_GenMuon_bare%s_CSphi' % muon_pf),"$\phi$",30,-math.pi,math.pi,"1"),
         'PV_npvsGood' : HistoDict('PV_npvsGood',"N",100,0,100,"1"),
 
     },
 
     'Cut_and_Weight' : {
-        'HLT_SingleMuon' : HistoDict(('HLT_SingleMuon'),"",5,0,5,"1"), #temporary
+        'HLT_SingleMu24' : HistoDict(('HLT_SingleMu24'),"",5,0,5,"1"), #temporary
+        'HLT_SingleMu27' : HistoDict(('HLT_SingleMu27'),"",5,0,5,"1"), #temporary
         'MET_filters' : HistoDict(('MET_filters'),"",5,0,5,"1"), #temporary
         'nVetoElectrons' : HistoDict(('nVetoElectrons'),"N",5,0,5,"1"), #temporary
         'Muon_pt_1' : HistoDict(('Muon%s_pt[Idx_mu1]' % muon_pf),"$P_{T}$ [GeV]",100,0,200,"Idx_mu1>=0"),
@@ -206,17 +207,17 @@ variables =  {
         'GenV_bare_y': HistoDict(('GenV_bare%s_y' % muon_pf),"y",100,-10,10,"(genVtype==14 || genVtype==13)"),
         'GenV_bare_qt' : HistoDict(('GenV_bare%s_qt' % muon_pf),"P_{T} [GeV]",100,0,200,"(genVtype==14 || genVtype==13)"),
         'GenV_bare_CStheta' : HistoDict(('GenV_bare%s_CStheta' % muon_pf),"$\Theta$",100,-1,1,"(genVtype==14 || genVtype==13)"),
-        'GenV_bare_CSphi'  : HistoDict(('GenV_bare%s_CSphi' % muon_pf),"$\phi$",30,0,2*math.pi,"(genVtype==14 || genVtype==13)"),
+        'GenV_bare_CSphi'  : HistoDict(('GenV_bare%s_CSphi' % muon_pf),"$\phi$",30,-math.pi,math.pi,"(genVtype==14 || genVtype==13)"),
         'GenV_preFSR_mass' : HistoDict(('GenV_preFSR%s_mass' % muon_pf),"M [GeV]",100,0,200,"(genVtype==14 || genVtype==13)"),
         'GenV_preFSR_y': HistoDict(('GenV_preFSR%s_y' % muon_pf),"y",100,-10,10,"(genVtype==14 || genVtype==13)"),
         'GenV_preFSR_qt' : HistoDict(('GenV_preFSR%s_qt' % muon_pf),"P_{T} [GeV]",100,0,200,"(genVtype==14 || genVtype==13)"),
         'GenV_preFSR_CStheta' : HistoDict(('GenV_preFSR%s_CStheta' % muon_pf),"$\Theta$",100,-1,1,"(genVtype==14 || genVtype==13)"),
-        'GenV_preFSR_CSphi'  : HistoDict(('GenV_preFSR%s_CSphi' % muon_pf),"$\phi$",30,0,2*math.pi,"(genVtype==14 || genVtype==13)"),
+        'GenV_preFSR_CSphi'  : HistoDict(('GenV_preFSR%s_CSphi' % muon_pf),"$\phi$",30,-math.pi,math.pi,"(genVtype==14 || genVtype==13)"),
         'GenV_dress_mass' : HistoDict(('GenV_dress%s_mass' % muon_pf),"M [GeV]",100,0,200,"(genVtype==14 || genVtype==13)"),
         'GenV_dress_y': HistoDict(('GenV_dress%s_y' % muon_pf),"y",100,-10,10,"(genVtype==14 || genVtype==13)"),
         'GenV_dress_qt' : HistoDict(('GenV_dress%s_qt' % muon_pf),"P_{T} [GeV]",100,0,200,"(genVtype==14 || genVtype==13)"),
         'GenV_dress_CStheta' : HistoDict(('GenV_dress%s_CStheta' % muon_pf),"$\Theta$",100,-1,1,"(genVtype==14 || genVtype==13)"),
-        'GenV_dress_CSphi'  : HistoDict(('GenV_dress%s_CSphi' % muon_pf),"$\phi$",30,0,2*math.pi,"(genVtype==14 || genVtype==13)"),
+        'GenV_dress_CSphi'  : HistoDict(('GenV_dress%s_CSphi' % muon_pf),"$\phi$",30,-math.pi,math.pi,"(genVtype==14 || genVtype==13)"),
     }
 
 }
