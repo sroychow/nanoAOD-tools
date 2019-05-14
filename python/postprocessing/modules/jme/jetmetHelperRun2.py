@@ -29,10 +29,15 @@ jecTagsDATA = { '2016B' : 'Summer16_07Aug2017BCD_V11_DATA',
                 '2018D' : 'Autumn18_RunD_V8_DATA',
                 } 
 
-jerTags = {'2016' : 'Summer16_25nsV1_MC',
-          '2017' : 'Fall17_V3_MC',
-          '2018' : 'Fall17_V3_MC'
-          }
+jerTagsMC = {'2016' : 'Summer16_25nsV1_MC',
+             '2017' : 'Fall17_V3_MC',
+             '2018' : 'Fall17_V3_MC'
+            }
+
+jerTagsDATA = {'2016' : 'Summer16_25nsV1_DATA',
+             '2017' : 'Fall17_V3_DATA',
+             '2018' : 'Fall17_V3_DATA'
+            }
 
 def createJMECorrector(isMC=True, dataYear=2016, runPeriod="B", jesUncert="Total", redojec=True, saveJets=False, crab=False):
     
@@ -40,6 +45,9 @@ def createJMECorrector(isMC=True, dataYear=2016, runPeriod="B", jesUncert="Total
 
     jmeUncert = [x for x in jesUncert.split(",")]
 
+    jerTag_ = jerTagsMC[str(dataYear)] if isMC else jerTagsDATA[str(dataYear)]
+
+    print 'JEC=', jecTag, '\t JER=', jerTag_
     #untar the zipped jec files when submitting crab jobs
     if crab :
         jesDatadir = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoAODTools/data/jme/"
@@ -49,12 +57,17 @@ def createJMECorrector(isMC=True, dataYear=2016, runPeriod="B", jesUncert="Total
             subprocess.call(['tar', "-xzvf", jesInputFile, "-C", jesDatadir])
         else:
             print "JEC file %s does not exist" % jesInputFile
-
+        jerInputFile = jesDatadir + jerTag_ + ".tar.gz"
+        if os.path.isfile(jerInputFile):
+            print "Using JER files from: %s" % jerInputFile
+            subprocess.call(['tar', "-xzvf", jerInputFile, "-C", jesDatadir])
+        else:
+            print "JER file %s does not exist" % jerInputFile
     jmeCorrections = None
     #jme corrections
     if isMC:
         jmeCorrections = lambda : jetmetUncertaintiesProducer(era=str(dataYear), globalTag=jecTag, jesUncertainties=jmeUncert, \
-                                                                  redoJEC=redojec, saveJets = saveJets, jerTag=jerTags[str(dataYear)])
+                                                                  redoJEC=redojec, saveJets = saveJets, jerTag=jerTag_)
     else:
         if redojec:
             jmeCorrections = lambda : jetRecalib(globalTag=jecTag, saveJets = saveJets)
