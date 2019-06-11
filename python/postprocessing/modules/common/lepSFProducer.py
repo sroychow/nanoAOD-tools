@@ -3,54 +3,76 @@ import os
 import numpy as np
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection 
-from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module,
 
+##By definition the first histo in the histos list is the SF, and the following are the errors.
 class lepSFProducer(Module):
-    def __init__(self, muonSelectionTag, electronSelectionTag):
-        if muonSelectionTag=="LooseWP_2016":
-            mu_f=["Mu_Trg.root","Mu_ID.root","Mu_Iso.root"]
-            mu_h = ["IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio",
-                    "MC_NUM_LooseID_DEN_genTracks_PAR_pt_eta/pt_abseta_ratio",
-                    "LooseISO_LooseID_pt_eta/pt_abseta_ratio"]
-        if electronSelectionTag=="GPMVA90_2016":
-            el_f = ["EGM2D_eleGSF.root","EGM2D_eleMVA90.root"]
-            el_h = ["EGamma_SF2D", "EGamma_SF2D"]
-        mu_f = ["%s/src/PhysicsTools/NanoAODTools/python/postprocessing/data/leptonSF/" % os.environ['CMSSW_BASE'] + f for f in mu_f]
-        el_f = ["%s/src/PhysicsTools/NanoAODTools/python/postprocessing/data/leptonSF/" % os.environ['CMSSW_BASE'] + f for f in el_f]
+    def __init__(self, lepFlavour="Muon", leptonSelectionTag, sfFile="MuSF.root", histos=["IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio"], sfTags=['SF'], useAbseta=True, ptEtaAxis=True,dataYear="2016", runPeriod="B"):
+        self.lepFlavour = lepFlavour
+        self.histos = [h for h in histos]
+        self.useAbseta = useAbseta
+        self.ptEtaAxis = ptEtaAxis
+        effFile = sfFile
+        self.effFile = "%s/src/PhysicsTools/NanoAODTools/python/postprocessing/data/leptonSF/%s/year%s/" % (os.environ['CMSSW_BASE'],lepFlavour, dataYear, effFile)
+        #Branch prefix to be written in outPut
+        branchPrefix = self.lepFlavour + "_" + leptonSelectionTag + "_" + runPeriod
+        self.histos    = ROOT.std.vector(str)(len(histos))
+        self.histoTags = ROOT.std.vector(str)(len(histos))
 
-        self.mu_f = ROOT.std.vector(str)(len(mu_f))
-        self.mu_h = ROOT.std.vector(str)(len(mu_f))
-        for i in range(len(mu_f)): self.mu_f[i] = mu_f[i]; self.mu_h[i] = mu_h[i];
-        self.el_f = ROOT.std.vector(str)(len(el_f))
-        self.el_h = ROOT.std.vector(str)(len(el_f))
-        for i in range(len(el_f)): self.el_f[i] = el_f[i]; self.el_h[i] = el_h[i];
+        for i in range(len(histos)): self.histos[i] = histos[i]; self.branchName[i] = branchPrefix + sfTags[i];
+        try:
+            ROOT.gSystem.Load("libPhysicsToolsNanoAODTools")
+            dummy = ROOT.WeightCalculatorFromHistogram
+        except Exception as e:
+            print "Could not load module via python, trying via ROOT", e
+            if "/WeightCalculatorFromHistogram_cc.so" not in ROOT.gSystem.GetLibraries():
+                print "Loading C++ helper from %s/src/PhysicsTools/NanoAODTools/src/WeightCalculatorFromHistogram.cc" % os.environ['CMSSW_BASE']
+                ROOT.gROOT.ProcessLine(".L %s/src/PhysicsTools/NanoAODTools/src/WeightCalculatorFromHistogram.cc++" % os.environ['CMSSW_BASE'])
+            dummy = ROOT.WeightCalculatorFromHistogram
 
-        if "/LeptonEfficiencyCorrector_cc.so" not in ROOT.gSystem.GetLibraries():
-            print "Load C++ Worker"
-            ROOT.gROOT.ProcessLine(".L %s/src/PhysicsTools/NanoAODTools/python/postprocessing/helpers/LeptonEfficiencyCorrector.cc+" % os.environ['CMSSW_BASE'])
     def beginJob(self):
-        self._worker_mu = ROOT.LeptonEfficiencyCorrector(self.mu_f,self.mu_h)
-        self._worker_el = ROOT.LeptonEfficiencyCorrector(self.el_f,self.el_h)
+        for i in range(len(self.histos)):
+            self._worker_lep_SF[i] = ROOT.WeightCalculatorFromHistogram(self.loadHisto(self.effFile, self.histos[i]))
+
     def endJob(self):
         pass
+
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("Muon_effSF", "F", lenVar="nMuon")
-        self.out.branch("Electron_effSF", "F", lenVar="nElectron")
+        for i in range(range(len(self.branchName))):
+            self.out.branch(self.branchName[i], "F", lenVar="n" + self.lepFlavour)
+
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
+
+    def loadHisto(self,filename,hname):
+        tf = ROOT.TFile.Open(filename)
+        hist = tf.Get(hname)
+        hist.SetDirectory(0)
+        tf.Close()
+        return hist
+
+    def getSF(self, lepPt, lepEta):
+        if self.useAbseta:
+            lepEta = abs(lepEta)
+        return self._worker_lep_SF[0].getWeight(lepPt, lepEta ) if self.ptEtaAxis else self._worker_lep_SF.getWeight(lepEta, lepPt )
+
+    def getSFError(self, i, lepPt, lepEta):
+        if self.useAbseta:
+            lepEta = abs(lepEta)
+        return self._worker_lep_SF[i].getWeightErr(lepPt, lepEta ) if self.ptEtaAxis else self._worker_lep_SF[i].getWeightErr(lepEta, lepPt )
+
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
-        muons = Collection(event, "Muon")
-        electrons = Collection(event, "Electron")
-        sf_el = [ self._worker_el.getSF(el.pdgId,el.pt,el.eta) for el in electrons ]
-        sf_mu = [ self._worker_mu.getSF(mu.pdgId,mu.pt,mu.eta) for mu in muons ]
-        self.out.fillBranch("Muon_effSF", sf_mu)
-        self.out.fillBranch("Electron_effSF", sf_el)
+        leptons = Collection(event, self.lepFlavour)
+        for i in range(len(self.histos)):
+            if i == 0:
+                sf_lep = [ self.getSF(lep.pt,lep.eta) for lep in leptons ]
+            else:
+                sf_lep = [ self.getSFError(i, lep.pt,lep.eta) for lep in leptons ]
+            self.out.fillBranch(self.branchName[i], sf_lep)
         return True
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
-
-lepSF = lambda : lepSFProducer( "LooseWP_2016", "GPMVA90_2016")
 
