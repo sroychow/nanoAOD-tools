@@ -10,7 +10,6 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module,
 class lepSFProducer(Module):
     def __init__(self, lepFlavour="Muon", leptonSelectionTag, sfFile="MuSF.root", histos=["IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio"], sfTags=['SF'], useAbseta=True, ptEtaAxis=True,dataYear="2016", runPeriod=""):
         self.lepFlavour = lepFlavour
-        self.histos = [h for h in histos]
         self.useAbseta = useAbseta
         self.ptEtaAxis = ptEtaAxis
         effFile = sfFile
