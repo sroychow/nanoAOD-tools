@@ -8,7 +8,7 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module,
 
 ##By definition the first histo in the histos list is the SF, and the following are the errors.
 class lepSFProducer(Module):
-    def __init__(self, lepFlavour="Muon", leptonSelectionTag, sfFile="MuSF.root", histos=["IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio"], sfTags=['SF'], useAbseta=True, ptEtaAxis=True,dataYear="2016", runPeriod="B"):
+    def __init__(self, lepFlavour="Muon", leptonSelectionTag, sfFile="MuSF.root", histos=["IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio"], sfTags=['SF'], useAbseta=True, ptEtaAxis=True,dataYear="2016", runPeriod=""):
         self.lepFlavour = lepFlavour
         self.histos = [h for h in histos]
         self.useAbseta = useAbseta
@@ -73,6 +73,3 @@ class lepSFProducer(Module):
                 sf_lep = [ self.getSFError(i, lep.pt,lep.eta) for lep in leptons ]
             self.out.fillBranch(self.branchName[i], sf_lep)
         return True
-
-# define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
-
