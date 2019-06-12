@@ -20,9 +20,9 @@ triggerHistoDict  = {
 }
 
 triggerBranchTags = {
-"2016" :  { 'IsoMu24' : ['SF', 'STAT'], 'Mu50' : ['SF', 'ST'] },
-"2017" :  { 'IsoMu27' : ['SF', 'STAT'], 'Mu50' : ['SF', 'ST'] },
-"2018" :  { 'IsoMu24' : ['SF', 'STAT'], 'Mu50_Mu100' : ['SF', 'ST'] },
+"2016" :  { 'IsoMu24' : ['SF', 'STAT'], 'Mu50' : ['SF', 'STAT'] },
+"2017" :  { 'IsoMu27' : ['SF', 'STAT'], 'Mu50' : ['SF', 'STAT'] },
+"2018" :  { 'IsoMu24' : ['SF', 'STAT'], 'Mu50_Mu100' : ['SF', 'STAT'] },
 }
 
 
@@ -153,31 +153,26 @@ isoBranchTags = {
 
 #lepSFhelper template
 #(lepFlavour="Muon", leptonSelectionTag, sfFile="MuSF.root", histos=["IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio"], sfTags=['SF'], useAbseta=True, ptEtaAxis=True,dataYear="2016", runPeriod="B"):
-class muonSFHelper():
-    def __init__(self, leptonSelectionTag, dataYear="2016", runPeriod="B"):
+##This is required beacuse for 2016 ID SF, binning is done for eta;x-axis is eta
+##But in any case, maybe useful if POG decides to switch from abs(eta) to eta
+##Not used for Trigger
+useAbsEta = { "2016" : False, "2017" : True, "2018" : True}
+ptEtaAxis = { "2016" : False, "2017" : True, "2018" : True}
 
-        self.dataYear = dataYear
-        self.runPeriod = runPeriod
-        self.leptonSelectionTag = leptonSelectionTag
-        ##This is required beacuse for 2016 ID SF, binning is done for eta;x-axis is eta
-        ##But in any case, maybe useful if POG decides to switch from abs(eta) to eta
-        ##Not used for Trigger
-        self.useAbsEta = { "2016" : False, "2017" : True, "2018" : True}
-        self.ptEtaAxis = { "2016" : False, "2017" : True, "2018" : True}
-    def getTriggerSFCreator(triggerName):
-        runPeriod = "BCDEF" if self.runPeriod in "BCDEF" else "GF"
-        effFile = "Run" + runPeriod + "_SF_Trigger.root"
-        mu_Trigger = lambda : lepSFProducerV2( lepFlavour="Muon", self.leptonSelectionTag, sfFile=effFile, histos=triggerHistoDict[self.runPeriod][triggerName], sfTags = triggerBranchTags[self.runPeriod][triggerName], dataYear=self.dataYear, runPeriod= self.runPeriod)
-        return mu_Trigger
+def getTriggerSFCreator(triggerName, dataYear, runPeriod):
+    runPeriod = "BCDEF" if runPeriod in "BCDEF" else "GF"
+    effFile = "Run" + runPeriod + "_SF_Trigger.root"
+    mu_Trigger = lambda : lepSFProducerV2( lepFlavour="Muon", "Trigger", sfFile=effFile, histos=triggerHistoDict[runPeriod][triggerName], sfTags = triggerBranchTags[runPeriod][triggerName], useAbseta=useAbsEta[dataYear], ptEtaAxis = ptEtaAxis[dataYear], dataYear=dataYear, runPeriod=runPeriod)
+    return mu_Trigger
 
-    def getIDSFCreator(idName):useAbseta=useAbsEta[dataYear], ptEtaAxis = self.ptEtaAxis[self.dataYear],
-        runPeriod = "BCDEF" if self.runPeriod in "BCDEF" else "GF"
-        effFile = "Run" + runPeriod + "_SF_ID.root"
-        mu_ID = lambda : lepSFProducerV2( lepFlavour="Muon", self.leptonSelectionTag, sfFile=effFile, histos=idHistoDict[self.runPeriod][idName], sfTags = idBranchTags[self.runPeriod][idName], useAbseta=self.useAbsEta[self.dataYear], ptEtaAxis = self.ptEtaAxis[self.dataYear], dataYear=self.dataYear, runPeriod= self.runPeriod)
-        return mu_ID
+def getIDSFCreator(idName, dataYear, runPeriod):,
+    runPeriod = "BCDEF" if runPeriod in "BCDEF" else "GF"
+    effFile = "Run" + runPeriod + "_SF_ID.root"
+    mu_ID = lambda : lepSFProducerV2( lepFlavour="Muon", "ID", sfFile=effFile, histos=idHistoDict[runPeriod][idName], sfTags=idBranchTags[runPeriod][idName], useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear], dataYear=dataYear, runPeriod=runPeriod)
+    return mu_ID
 
-    def getISOSFCreator(isoName):useAbseta=useAbsEta[dataYear], ptEtaAxis = self.ptEtaAxis[self.dataYear],
-        runPeriod = "BCDEF" if self.runPeriod in "BCDEF" else "GF"
-        effFile = "Run" + runPeriod + "_SF_ISO.root"
-        mu_ISO = lambda : lepSFProducerV2( lepFlavour="Muon", self.leptonSelectionTag, sfFile=effFile, histos=idHistoDict[self.runPeriod][isoName], sfTags = idBranchTags[self.runPeriod][isoName], useAbseta=self.useAbsEta[self.dataYear], ptEtaAxis = self.ptEtaAxis[self.dataYear], dataYear=self.dataYear, runPeriod= self.runPeriod)
-        return mu_ISO
+def getISOSFCreator(isoName, dataYear, runPeriod):
+    runPeriod = "BCDEF" if self.runPeriod in "BCDEF" else "GF"
+    effFile = "Run" + runPeriod + "_SF_ISO.root"
+    mu_ISO = lambda : lepSFProducerV2( lepFlavour="Muon", leptonSelectionTag="ISO", sfFile=effFile, histos=isoHistoDict[runPeriod][isoName], sfTags=isoBranchTags[runPeriod][isoName], useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear], dataYear=dataYear, runPeriod=runPeriod)
+    return mu_ISO
