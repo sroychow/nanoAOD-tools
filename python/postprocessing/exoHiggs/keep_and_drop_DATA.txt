@@ -1,0 +1,9 @@
+drop *
+keep Muon*
+keep Electron*
+keep event*
+keep *MET*
+keep *Jet*
+keep TkMET*
+keep PuppiMET*
+keep TrigObj*
