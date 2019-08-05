@@ -10,7 +10,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetSmearer import jetS
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.JetReCalibrator import JetReCalibrator
 
 class jetmetUncertaintiesProducer(Module):
-    def __init__(self, era, globalTag, jesUncertainties = [ "Total" ], jetType = "AK4PFchs", redoJEC=False, noGroom=False, saveJets=True, jerTag=""):
+    def __init__(self, era, globalTag, jesUncertainties = [ "Total" ], jetType = "AK4PFchs", redoJEC=False, noGroom=False, jerTag="", jmrVals = []):
 
         self.era = era
         self.redoJEC = redoJEC
@@ -24,20 +24,12 @@ class jetmetUncertaintiesProducer(Module):
         self.jesUncertainties = jesUncertainties
 
         # smear jet pT to account for measured difference in JER between data and simulation.
-        if era == "2016":
-            self.jerInputFileName = "Summer16_25nsV1_MC_PtResolution_" + jetType + ".txt"
-            self.jerUncertaintyInputFileName = "Summer16_25nsV1_MC_SF_" + jetType + ".txt"
-        elif era == "2017" or era == "2018": # use Fall17 as temporary placeholder until post-Moriond 2019 JERs are out
-            self.jerInputFileName = "Fall17_V3_MC_PtResolution_" + jetType + ".txt"
-            self.jerUncertaintyInputFileName = "Fall17_V3_MC_SF_" + jetType + ".txt"
+        self.jerInputFileName = jerTag + "_PtResolution_" + jetType + ".txt"
+        self.jerUncertaintyInputFileName = jerTag + "_SF_"  + jetType + ".txt"
 
         #jet mass resolution: https://twiki.cern.ch/twiki/bin/view/CMS/JetWtagging
         #2016 values
-        self.jmrVals = [1.0, 1.2, 0.8] #nominal, up, down
-
-        # Use 2017 values for 2018 until 2018 are released
-        if self.era in ["2017","2018"]:
-            self.jmrVals = [1.09, 1.14, 1.04]
+        self.jmrVals = jmrVals 
 
         self.jetSmearer = jetSmearer(globalTag, jetType, self.jerInputFileName, self.jerUncertaintyInputFileName, self.jmrVals)
 
@@ -82,6 +74,7 @@ class jetmetUncertaintiesProducer(Module):
         self.jesArchive = tarfile.open(self.jesInputArchivePath+globalTag+".tgz", "r:gz")
         self.jesInputFilePath = tempfile.mkdtemp()
         self.jesArchive.extractall(self.jesInputFilePath)
+        
         
         if len(jesUncertainties) == 1 and jesUncertainties[0] == "Total":
             self.jesUncertaintyInputFileName = globalTag + "_Uncertainty_" + jetType + ".txt"

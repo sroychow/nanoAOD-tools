@@ -5,10 +5,15 @@ import subprocess
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import *
 
-# JEC for MET
+# JEC dict
 jecTagsMC = {'2016' : 'Summer16_07Aug2017_V11_MC', 
              '2017' : 'Fall17_17Nov2017_V32_MC', 
              '2018' : 'Autumn18_V8_MC'}
+
+archiveTagsDATA = {'2016' : 'Summer16_07Aug2017_V11_DATA', 
+                   '2017' : 'Fall17_17Nov2017_V32_DATA', 
+                   '2018' : 'Autumn18_V8_DATA'
+                  }
 
 jecTagsDATA = { '2016B' : 'Summer16_07Aug2017BCD_V11_DATA', 
                 '2016C' : 'Summer16_07Aug2017BCD_V11_DATA', 
@@ -35,40 +40,41 @@ jerTagsMC = {'2016' : 'Summer16_25nsV1_MC',
             }
 
 jerTagsDATA = {'2016' : 'Summer16_25nsV1_DATA',
-             '2017' : 'Fall17_V3_DATA',
-             '2018' : 'Fall17_V3_DATA'
+               '2017' : 'Fall17_V3_DATA',
+               '2018' : 'Fall17_V3_DATA'
+              }
+#jet mass resolution: https://twiki.cern.ch/twiki/bin/view/CMS/JetWtagging
+#nominal, up, down
+jmrValues = {'2016' : [1.0, 1.2, 0.8],
+             '2017' : [1.09, 1.14, 1.04],
+             '2018' : [1.09, 1.14, 1.04]        # Use 2017 values for 2018 until 2018 are released
             }
-
-def createJMECorrector(isMC=True, dataYear=2016, runPeriod="B", jesUncert="Total", redojec=True, saveJets=False, crab=False):
+def createJMECorrector(isMC=True, dataYear=2016, runPeriod="B", jesUncert="Total", redojec=False, jetType = "AK4PFchs", noGroom=False):
     
-    jecTag = jecTagsMC[str(dataYear)] if isMC else jecTagsDATA[str(dataYear) + runPeriod]
+    jecTag_ = jecTagsMC[dataYear] if isMC else jecTagsDATA[dataYear + runPeriod]
 
-    jmeUncert = [x for x in jesUncert.split(",")]
+    jmeUncert_ = [x for x in jesUncert.split(",")]
 
-    jerTag_ = jerTagsMC[str(dataYear)] if isMC else jerTagsDATA[str(dataYear)]
+    jerTag_ = jerTagsMC[dataYear] if isMC else jerTagsDATA[dataYear]
 
-    print 'JEC=', jecTag, '\t JER=', jerTag_
-    #untar the zipped jec files when submitting crab jobs
-    if crab :
-        jesDatadir = os.environ['CMSSW_BASE'] + "/src/PhysicsTools/NanoAODTools/data/jme/"
-        jesInputFile = jesDatadir + jecTag + ".tar.gz"
-        if os.path.isfile(jesInputFile):
-            print "Using JEC files from: %s" % jesInputFile
-            subprocess.call(['tar', "-xzvf", jesInputFile, "-C", jesDatadir])
-        else:
-            print "JEC file %s does not exist" % jesInputFile
-        jerInputFile = jesDatadir + jerTag_ + ".tar.gz"
-        if os.path.isfile(jerInputFile):
-            print "Using JER files from: %s" % jerInputFile
-            subprocess.call(['tar', "-xzvf", jerInputFile, "-C", jesDatadir])
-        else:
-            print "JER file %s does not exist" % jerInputFile
+    jmrValues_ = jmrValues[dataYear]
+
+    print 'JEC=', jecTag_, '\t JER=', jerTag_
+
     jmeCorrections = None
     #jme corrections
     if isMC:
-        jmeCorrections = lambda : jetmetUncertaintiesProducer(era=str(dataYear), globalTag=jecTag, jesUncertainties=jmeUncert, \
-                                                                  redoJEC=redojec, saveJets = saveJets, jerTag=jerTag_)
+        jmeCorrections = lambda : jetmetUncertaintiesProducer(era=dataYear, globalTag=jecTag_, jesUncertainties=jmeUncert_, \
+                                                              redoJEC=redojec, jerTag=jerTag_, jetType = jetType, \
+                                                              noGroom = noGroom, jmrValues = jmrValues_)
     else:
         if redojec:
-            jmeCorrections = lambda : jetRecalib(globalTag=jecTag, saveJets = saveJets)
+            jmeCorrections = lambda : jetRecalib(globalTag=jecTag_, archive=archiveTag[dataYear], jetType=jetType, redojec=redojec)
     return jmeCorrections
+
+
+###In the main postprocessor script, user has to call the function,
+###e.g for 2016
+#jmeCorrections = createJMECorrector(False, "2016", "B", "Total", True, "AK4PFchs", False)
+#include jmeCorrections() in the list of modules to run.
+###
