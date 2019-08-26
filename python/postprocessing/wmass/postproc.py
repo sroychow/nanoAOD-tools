@@ -175,11 +175,12 @@ Wtypes = ['bare', 'preFSR', 'dress']
 ################################################
 
 ##This is temporary for testing purpose
-input_dir = "/gpfs/ddn/srm/cms/store/"
+#input_dir = "/gpfs/ddn/srm/cms/store/"
+input_dir = "/eos/cms/store/"
 
 ifileMC = ""
 if dataYear==2016:
-    ifileMC = "mc/RunIISummer16NanoAODv3/DYJetsToLL_Pt-50To100_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/280000/26DE6A2F-9329-E911-8766-002590DE6E8A.root"
+    ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext2-v1/120000/FF69DF6E-2494-F543-95BF-F919B911CD23.root"
     #input_dir = "/gpfs/ddn/srm/cms/store/user/emanca/"
     #ifileMC = "NanoWMassV4/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NanoWMass/190218_175825/0000/myNanoProdMc_NANO_41.root"
 elif dataYear==2017:
