@@ -1,5 +1,5 @@
 import ROOT
-import math, os,re, tarfile, tempfile
+import math, os,re, tarfile, tempfile, shutil
 import numpy as np
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
@@ -10,7 +10,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetSmearer import jetS
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.JetReCalibrator import JetReCalibrator
 
 class jetmetUncertaintiesProducer(Module):
-    def __init__(self, era, globalTag, jesUncertainties = [ "Total" ], jetType = "AK4PFchs", redoJEC=False, noGroom=False):
+    def __init__(self, era, globalTag, jesUncertainties = [ "Total" ], jetType = "AK4PFchs", redoJEC=False, noGroom=False, jerTag="", jmrVals = [], jmsVals = []):
 
         self.era = era
         self.redoJEC = redoJEC
@@ -21,22 +21,27 @@ class jetmetUncertaintiesProducer(Module):
         #--------------------------------------------------------------------------------------------
 
         self.jesUncertainties = jesUncertainties
-
         # smear jet pT to account for measured difference in JER between data and simulation.
-        if era == "2016":
-            self.jerInputFileName = "Summer16_25nsV1_MC_PtResolution_" + jetType + ".txt"
-            self.jerUncertaintyInputFileName = "Summer16_25nsV1_MC_SF_" + jetType + ".txt"
-        elif era == "2017" or era == "2018": # use Fall17 as temporary placeholder until post-Moriond 2019 JERs are out
-            self.jerInputFileName = "Fall17_V3_MC_PtResolution_" + jetType + ".txt"
-            self.jerUncertaintyInputFileName = "Fall17_V3_MC_SF_" + jetType + ".txt"
+        if jerTag != "":
+            self.jerInputFileName = jerTag + "_PtResolution_" + jetType + ".txt"
+            self.jerUncertaintyInputFileName = jerTag + "_SF_"  + jetType + ".txt"
+        else:
+            print "WARNING: jerTag is empty!!! This module will soon be deprecated! Please use jetmetHelperRun2 in the future."
+            if era == "2016":
+                self.jerInputFileName = "Summer16_25nsV1_MC_PtResolution_" + jetType + ".txt"
+                self.jerUncertaintyInputFileName = "Summer16_25nsV1_MC_SF_" + jetType + ".txt"
+            elif era == "2017" or era == "2018": # use Fall17 as temporary placeholder until post-Moriond 2019 JERs are out
+                self.jerInputFileName = "Fall17_V3_MC_PtResolution_" + jetType + ".txt"
+                self.jerUncertaintyInputFileName = "Fall17_V3_MC_SF_" + jetType + ".txt"
 
         #jet mass resolution: https://twiki.cern.ch/twiki/bin/view/CMS/JetWtagging
-        #2016 values
-        self.jmrVals = [1.0, 1.2, 0.8] #nominal, up, down
-
-        # Use 2017 values for 2018 until 2018 are released
-        if self.era in ["2017","2018"]:
-            self.jmrVals = [1.09, 1.14, 1.04]
+        self.jmrVals = jmrVals
+        if not self.jmrVals:
+            print "WARNING: jmrVals is empty!!! Using default values. This module will soon be deprecated! Please use jetmetHelperRun2 in the future."
+            self.jmrVals = [1.0, 1.2, 0.8] #nominal, up, down
+            # Use 2017 values for 2018 until 2018 are released
+            if self.era in ["2017","2018"]:
+                self.jmrVals = [1.09, 1.14, 1.04] 
 
         self.jetSmearer = jetSmearer(globalTag, jetType, self.jerInputFileName, self.jerUncertaintyInputFileName, self.jmrVals)
 
@@ -67,12 +72,14 @@ class jetmetUncertaintiesProducer(Module):
         self.lenVar = "n" + self.jetBranchName
 
         #jet mass scale
-        #W-tagging PUPPI softdrop JMS values: https://twiki.cern.ch/twiki/bin/view/CMS/JetWtagging
-        #2016 values 
-        self.jmsVals = [1.00, 0.9906, 1.0094] #nominal, down, up
-        # Use 2017 values for 2018 until 2018 are released
-        if self.era in ["2017","2018"]:
-            self.jmsVals = [0.982, 0.978, 0.986]
+        self.jmsVals = jmsVals
+        if not self.jmsVals:
+            print "WARNING: jmsVals is empty!!! Using default values! This module will soon be deprecated! Please use jetmetHelperRun2 in the future."
+            #2016 values 
+            self.jmsVals = [1.00, 0.9906, 1.0094] #nominal, down, up
+            # Use 2017 values for 2018 until 2018 are released
+            if self.era in ["2017","2018"]:
+                self.jmsVals = [0.982, 0.978, 0.986]
 
         # read jet energy scale (JES) uncertainties
         # (downloaded from https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC )
@@ -81,6 +88,7 @@ class jetmetUncertaintiesProducer(Module):
         self.jesArchive = tarfile.open(self.jesInputArchivePath+globalTag+".tgz", "r:gz")
         self.jesInputFilePath = tempfile.mkdtemp()
         self.jesArchive.extractall(self.jesInputFilePath)
+        
         
         if len(jesUncertainties) == 1 and jesUncertainties[0] == "Total":
             self.jesUncertaintyInputFileName = globalTag + "_Uncertainty_" + jetType + ".txt"
@@ -127,6 +135,7 @@ class jetmetUncertaintiesProducer(Module):
 
     def endJob(self):
         self.jetSmearer.endJob()
+        shutil.rmtree(self.jesInputFilePath)
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
@@ -142,6 +151,7 @@ class jetmetUncertaintiesProducer(Module):
         if self.doGroomed:
             self.out.branch("%s_msoftdrop_raw" % self.jetBranchName, "F", lenVar=self.lenVar)
             self.out.branch("%s_msoftdrop_nom" % self.jetBranchName, "F", lenVar=self.lenVar)
+            self.out.branch("%s_msoftdrop_tau21DDT_nom" % self.jetBranchName, "F", lenVar=self.lenVar)
             self.out.branch("%s_msoftdrop_corr_JMR" % self.jetBranchName, "F", lenVar=self.lenVar)
             self.out.branch("%s_msoftdrop_corr_JMS" % self.jetBranchName, "F", lenVar=self.lenVar)
             self.out.branch("%s_msoftdrop_corr_PUPPI" % self.jetBranchName, "F", lenVar=self.lenVar)
@@ -160,6 +170,10 @@ class jetmetUncertaintiesProducer(Module):
                 self.out.branch("%s_msoftdrop_jer%s" % (self.jetBranchName, shift), "F", lenVar=self.lenVar)
                 self.out.branch("%s_msoftdrop_jmr%s" % (self.jetBranchName, shift), "F", lenVar=self.lenVar)
                 self.out.branch("%s_msoftdrop_jms%s" % (self.jetBranchName, shift), "F", lenVar=self.lenVar)
+                self.out.branch("%s_msoftdrop_tau21DDT_jer%s" % (self.jetBranchName, shift), "F", lenVar=self.lenVar)
+                self.out.branch("%s_msoftdrop_tau21DDT_jmr%s" % (self.jetBranchName, shift), "F", lenVar=self.lenVar)
+                self.out.branch("%s_msoftdrop_tau21DDT_jms%s" % (self.jetBranchName, shift), "F", lenVar=self.lenVar)
+
 
             if self.corrMET :
                 self.out.branch("%s_pt_jer%s" % (self.metBranchName, shift), "F")
@@ -249,6 +263,13 @@ class jetmetUncertaintiesProducer(Module):
             jets_msdcorr_jesDown = {}
             jets_msdcorr_jmsUp   = []
             jets_msdcorr_jmsDown = []
+            jets_msdcorr_tau21DDT_nom = []
+            jets_msdcorr_tau21DDT_jerUp = []
+            jets_msdcorr_tau21DDT_jerDown = []
+            jets_msdcorr_tau21DDT_jmrUp = []
+            jets_msdcorr_tau21DDT_jmrDown = []
+            jets_msdcorr_tau21DDT_jmsUp = []
+            jets_msdcorr_tau21DDT_jmsDown = []
             for jesUncertainty in self.jesUncertainties:
                 jets_msdcorr_jesUp[jesUncertainty]   = []
                 jets_msdcorr_jesDown[jesUncertainty] = []
@@ -363,6 +384,31 @@ class jetmetUncertaintiesProducer(Module):
                 jets_msdcorr_jmrDown.append(jet_pt_jerNomVal *jet_msdcorr_jmrDownVal*jmsNomVal  *jet_msdcorr_raw)
                 jets_msdcorr_jmsUp  .append(jet_pt_jerNomVal *jet_msdcorr_jmrNomVal *jmsUpVal   *jet_msdcorr_raw)
                 jets_msdcorr_jmsDown.append(jet_pt_jerNomVal *jet_msdcorr_jmrNomVal *jmsDownVal *jet_msdcorr_raw)
+
+                #Also evaluated JMS&JMR SD corr in tau21DDT region: https://twiki.cern.ch/twiki/bin/viewauth/CMS/JetWtagging#tau21DDT_0_43
+                if self.era in ["2016"]:
+                    jmstau21DDTNomVal = 1.014
+                    jmstau21DDTDownVal = 1.007
+                    jmstau21DDTUpVal = 1.021
+                    self.jetSmearer.jmr_vals = [1.086,1.176,0.996]
+                elif self.era in ["2017","2018"]:
+                    jmstau21DDTNomVal = 0.983
+                    jmstau21DDTDownVal = 0.976
+                    jmstau21DDTUpVal = 0.99
+                    self.jetSmearer.jmr_vals = [1.080,1.161,0.999]
+
+                ( jet_msdcorr_tau21DDT_jmrNomVal, jet_msdcorr_tau21DDT_jmrUpVal, jet_msdcorr_tau21DDT_jmrDownVal ) = self.jetSmearer.getSmearValsM(groomedP4, genGroomedJet) if groomedP4 != None and genGroomedJet != None else (0.,0.,0.)
+                jet_msdcorr_tau21DDT_nom           = jet_pt_jerNomVal*jet_msdcorr_tau21DDT_jmrNomVal*jmstau21DDTNomVal*jet_msdcorr_raw
+                jets_msdcorr_tau21DDT_nom    .append(jet_msdcorr_tau21DDT_nom)
+                jets_msdcorr_tau21DDT_jerUp  .append(jet_pt_jerUpVal  *jet_msdcorr_tau21DDT_jmrNomVal *jmstau21DDTNomVal  *jet_msdcorr_raw)
+                jets_msdcorr_tau21DDT_jerDown.append(jet_pt_jerDownVal*jet_msdcorr_tau21DDT_jmrNomVal *jmstau21DDTNomVal  *jet_msdcorr_raw)
+                jets_msdcorr_tau21DDT_jmrUp  .append(jet_pt_jerNomVal *jet_msdcorr_tau21DDT_jmrUpVal  *jmstau21DDTNomVal  *jet_msdcorr_raw)
+                jets_msdcorr_tau21DDT_jmrDown.append(jet_pt_jerNomVal *jet_msdcorr_tau21DDT_jmrDownVal*jmstau21DDTNomVal  *jet_msdcorr_raw)
+                jets_msdcorr_tau21DDT_jmsUp  .append(jet_pt_jerNomVal *jet_msdcorr_tau21DDT_jmrNomVal *jmstau21DDTUpVal   *jet_msdcorr_raw)
+                jets_msdcorr_tau21DDT_jmsDown.append(jet_pt_jerNomVal *jet_msdcorr_tau21DDT_jmrNomVal *jmstau21DDTDownVal *jet_msdcorr_raw)
+
+                #Restore original jmr_vals in jetSmearer
+                self.jetSmearer.jmr_vals = self.jmrVals
             
             for jesUncertainty in self.jesUncertainties:
                 # (cf. https://twiki.cern.ch/twiki/bin/view/CMSPublic/WorkBookJetEnergyCorrections#JetCorUncertainties )
@@ -455,6 +501,13 @@ class jetmetUncertaintiesProducer(Module):
             self.out.fillBranch("%s_msoftdrop_jmrDown" % self.jetBranchName, jets_msdcorr_jmrDown)
             self.out.fillBranch("%s_msoftdrop_jmsUp" % self.jetBranchName, jets_msdcorr_jmsUp)
             self.out.fillBranch("%s_msoftdrop_jmsDown" % self.jetBranchName, jets_msdcorr_jmsDown)
+            self.out.fillBranch("%s_msoftdrop_tau21DDT_nom" % self.jetBranchName, jets_msdcorr_tau21DDT_nom)
+            self.out.fillBranch("%s_msoftdrop_tau21DDT_jerUp" % self.jetBranchName, jets_msdcorr_tau21DDT_jerUp)
+            self.out.fillBranch("%s_msoftdrop_tau21DDT_jerDown" % self.jetBranchName, jets_msdcorr_tau21DDT_jerDown)
+            self.out.fillBranch("%s_msoftdrop_tau21DDT_jmrUp" % self.jetBranchName, jets_msdcorr_tau21DDT_jmrUp)
+            self.out.fillBranch("%s_msoftdrop_tau21DDT_jmrDown" % self.jetBranchName, jets_msdcorr_tau21DDT_jmrDown)
+            self.out.fillBranch("%s_msoftdrop_tau21DDT_jmsUp" % self.jetBranchName, jets_msdcorr_tau21DDT_jmsUp)
+            self.out.fillBranch("%s_msoftdrop_tau21DDT_jmsDown" % self.jetBranchName, jets_msdcorr_tau21DDT_jmsDown)
 
             
         if self.corrMET :
