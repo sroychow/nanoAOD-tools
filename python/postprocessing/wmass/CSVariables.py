@@ -77,7 +77,7 @@ class CSVariables(Module):
             for v in self.vars:
                 results[t+'_'+v] = 0.0
             
-        if event.genVtype in [13,14]:
+        if abs(event.genVtype) in [13,14]:
             genParticles = Collection(event, "GenPart")
             genDressedLeptons = Collection(event,"GenDressedLepton")
             idx_nu = event.Idx_nu

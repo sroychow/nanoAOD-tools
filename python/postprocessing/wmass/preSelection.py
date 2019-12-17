@@ -1,10 +1,15 @@
 import ROOT
+import math
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection 
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
-
+def matches_any(mu,trigs,R):
+    for t in trigs:        
+        dR = math.sqrt((mu.eta-t.eta)**2 + math.acos(math.cos(mu.phi-t.phi))**2) 
+        if dR<=R: return True
+    return False
 def fiducial_muon(mu):
     return (abs(mu.eta)<2.4 and mu.pt>10 and abs(mu.dxy)<0.05 and abs(mu.dz)<0.2)
 def loose_muon_id(mu):
@@ -100,11 +105,15 @@ class preSelection(Module):
             met_filters_AND &=  (not (val & (1 << (1-int(self.isMC)) )) or getattr(event, "Flag_"+key))
         self.out.fillBranch("MET_filters", int(met_filters_AND))
 
+        all_trigs = Collection(event, "TrigObj")
+        muon_trigs = [ trig for trig in all_trigs if trig.id==13 and ((trig.filterBits>>0 & 1 ) or (trig.filterBits>>1 & 1 ))]
+
         # Muon selection
         all_muons = Collection(event, "Muon")
-        loose_muons       = [ [mu,imu] for imu,mu in enumerate(all_muons) if loose_muon_id(mu) ]
-        medium_muons      = [ [mu,imu] for imu,mu in enumerate(all_muons) if medium_muon_id(mu)]
-        medium_aiso_muons = [ [mu,imu] for imu,mu in enumerate(all_muons) if medium_aiso_muon_id(mu)]
+        all_muons_trig    = [mu for mu in all_muons if matches_any(mu,muon_trigs,R=0.3) ]
+        loose_muons       = [ [mu,imu] for imu,mu in enumerate(all_muons_trig) if loose_muon_id(mu) ]
+        medium_muons      = [ [mu,imu] for imu,mu in enumerate(all_muons_trig) if medium_muon_id(mu)]
+        medium_aiso_muons = [ [mu,imu] for imu,mu in enumerate(all_muons_trig) if medium_aiso_muon_id(mu)]
 
         loose_muons.sort( key = lambda x: x[0].pt, reverse=True )
         medium_muons.sort(key = lambda x: x[0].pt, reverse=True )

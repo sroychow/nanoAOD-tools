@@ -5,5 +5,5 @@ keep luminosityBlock*
 keep Muon*
 keep event*
 keep MET*
-keep TkMET*
+drop TkMET*
 keep PV*

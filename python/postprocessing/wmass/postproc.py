@@ -82,7 +82,8 @@ if crab:
 """
 #Function definition
 #createJMECorrector(isMC=True, dataYear=2016, runPeriod="B", jesUncert="Total", redoJec=True, saveJets=False, crab=False)
-jmeCorrections = createJMECorrector(isMC, str(dataYear), runPeriod, jesUncert, redojec, False, crab)
+jmeCorrections = createJMECorrector(isMC=isMC, dataYear=dataYear, runPeriod=runPeriod, jesUncert=jesUncert, redojec=redojec, 
+                                    jetType="AK4PFchs", noGroom=False, metBranchName="MET", applySmearing=True, isFastSim=False)
 ################################################ MET
 # MET dictionary 
 doJERVar     = True
@@ -124,9 +125,11 @@ elif dataYear==2018:
     #print bcolors.OKBLUE, "No module %s will be run" % "muonScaleRes", bcolors.ENDC
     
 # muon dictionary
-mudict = { "PF" : { "tag" : "Muon", "systs" : [""] } }
+mudict = {}
+#mudict = { "PF" : { "tag" : "Muon", "systs" : [""] } }
 if dataYear in [2016, 2017, 2018]:
-    mudict["roccor"] = { "tag" : "Muon",   "systs"  : ["corrected", "correctedUp",  "correctedDown"] }
+    pass
+    #mudict["roccor"] = { "tag" : "Muon",   "systs"  : ["corrected", "correctedUp",  "correctedDown"] }
 if isMC:
     mudict["GEN"] = { "tag" : "GenMuon",  "systs" : ["bare"] }
     # these exist only for 2017
@@ -175,26 +178,33 @@ Wtypes = ['bare', 'preFSR', 'dress']
 ################################################
 
 ##This is temporary for testing purpose
-#input_dir = "/gpfs/ddn/srm/cms/store/"
-input_dir = "/eos/cms/store/"
+input_dir = "/gpfs/ddn/srm/cms/store/"
+#input_dir = "/eos/cms/store/"
 
 ifileMC = ""
 if dataYear==2016:
-    ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext2-v1/120000/FF69DF6E-2494-F543-95BF-F919B911CD23.root"
+    #ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext2-v1/120000/FF69DF6E-2494-F543-95BF-F919B911CD23.root"
+    ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-400to500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext1-v1/250000/C2A438DF-D201-8041-B5E3-993774CBF099.root"
     #input_dir = "/gpfs/ddn/srm/cms/store/user/emanca/"
     #ifileMC = "NanoWMassV4/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NanoWMass/190218_175825/0000/myNanoProdMc_NANO_41.root"
 elif dataYear==2017:
-    ifileMC = "mc/RunIIFall17NanoAODv4/DYJetsToLL_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano14Dec2018_102X_mc2017_realistic_v6-v1/20000/41874784-9F25-7C49-B4E3-6EECD93B77CA.root"    
+    #ifileMC = "mc/RunIIFall17NanoAODv4/DYJetsToLL_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano14Dec2018_102X_mc2017_realistic_v6-v1/20000/41874784-9F25-7C49-B4E3-6EECD93B77CA.root"    
+    ifileMC = "mc/RunIIFall17NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano1June2019_102X_mc2017_realistic_v7-v1/20000/B1929C77-857F-CA47-B352-DE52C3D6F795.root"
 elif dataYear==2018:
-    ifileMC = "mc/RunIIAutumn18NanoAODv4/DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/Nano14Dec2018_102X_upgrade2018_realistic_v16-v1/270000/320474A7-2A79-E042-BD91-BD48021177A2.root"
+    #ifileMC = "mc/RunIIAutumn18NanoAODv4/DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/Nano14Dec2018_102X_upgrade2018_realistic_v16-v1/270000/320474A7-2A79-E042-BD91-BD48021177A2.root"
+    ifileMC = "mc/RunIIAutumn18NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/Nano1June2019_102X_upgrade2018_realistic_v19-v1/100000/FEF8F001-02FD-E449-B1FC-67C8653CDCEC.root"
 
 ifileDATA = ""
 if dataYear==2016:
-    ifileDATA = "data/Run2016D/DoubleEG/NANOAOD/Nano14Dec2018-v1/280000/481DA5C0-DF96-5640-B5D1-208F52CAC829.root"
+    #ifileDATA = "data/Run2016D/DoubleEG/NANOAOD/Nano14Dec2018-v1/280000/481DA5C0-DF96-5640-B5D1-208F52CAC829.root"
+    if not isMC: input_dir = 'root://xrootd.ba.infn.it//store/'
+    ifileDATA = "data/Run2016D/SingleMuon/NANOAOD/Nano1June2019-v1/40000/FBA773A7-6C8A-FA4A-AAB2-939609D9B339.root"
 elif dataYear==2017:
-    ifileDATA = "data/Run2017E/DoubleMuon/NANOAOD/31Mar2018-v1/710000/A452D873-4B6E-E811-BE23-FA163E60E3B4.root"
+    #ifileDATA = "data/Run2017E/DoubleMuon/NANOAOD/31Mar2018-v1/710000/A452D873-4B6E-E811-BE23-FA163E60E3B4.root"
+    ifileDATA = "data/Run2017F/BTagCSV/NANOAOD/Nano1June2019-v1/40000/030D3C6F-240B-3247-961D-1A7C0922DC1F.root"
 elif dataYear==2018:
-    ifileDATA = "data/Run2018D/SingleMuon/NANOAOD/14Sep2018_ver2-v1/110000/41819B10-A73F-BC4A-9CCC-FD93D80D5465.root"
+    #ifileDATA = "data/Run2018D/SingleMuon/NANOAOD/14Sep2018_ver2-v1/110000/41819B10-A73F-BC4A-9CCC-FD93D80D5465.root"
+    ifileDATA = "data/Run2018B/DoubleMuon/NANOAOD/Nano1June2019-v1/40000/20FCA3B4-6778-7441-B63C-307A21C7C2F0.root"
 
 input_files = []
 modules = []
@@ -204,25 +214,29 @@ if isMC:
     if (not genOnly and not trigOnly):
         modules = [puWeightProducer(), 
                    preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
-	           lepSFTrig(),
-                   lepSFID(),
-                   lepSFISO(),
+	           #lepSFTrig(),
+                   #lepSFID(),
+                   #lepSFISO(),
                    jmeCorrections(),
-                   recoZproducer(mudict=mudict, isMC=isMC),
-                   additionalVariables(isMC=isMC, mudict=mudict, metdict=metdict), 
+                   #recoZproducer(mudict=mudict, isMC=isMC),
+                   #additionalVariables(isMC=isMC, mudict=mudict, metdict=metdict), 
                    genLeptonSelection(Wtypes=Wtypes), 
-                   CSVariables(Wtypes=Wtypes), 
-                   genVproducer(Wtypes=Wtypes),
+                   #CSVariables(Wtypes=Wtypes), 
+                   #genVproducer(Wtypes=Wtypes),
                    #harmonicWeights(Wtypes=Wtypes),
                    ]
         # add before recoZproducer
         if muonScaleRes!=None: modules.insert(5, muonScaleRes())
         if dataYear == 2016: 
-            modules.insert(2,lepSFTrig_GH())
-            modules.insert(3,lepSFID_GH())
-            modules.insert(4,lepSFISO_GH())
+            pass
+            #modules.insert(2,lepSFTrig_GH())
+            #modules.insert(3,lepSFID_GH())
+            #modules.insert(4,lepSFISO_GH())
     elif genOnly: 
-        modules = [genLeptonSelection(Wtypes=Wtypes, filterByDecay=True),CSVariables(Wtypes=Wtypes),genVproducer(Wtypes=Wtypes)]
+        modules = [genLeptonSelection(Wtypes=Wtypes, filterByDecay=True),
+                   #CSVariables(Wtypes=Wtypes),
+                   #genVproducer(Wtypes=Wtypes)
+               ]
     elif trigOnly: 
         modules = [puWeightProducer(),preSelection(isMC=True, passall=passall, dataYear=dataYear, trigOnly=True)]
     else:
@@ -230,8 +244,8 @@ if isMC:
 else:
     input_files.append( input_dir+ifileDATA )
     modules = [preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 
-               recoZproducer(mudict=mudict, isMC=isMC),
-               additionalVariables(isMC=isMC, mudict=mudict, metdict=metdict),
+               #recoZproducer(mudict=mudict, isMC=isMC),
+               #additionalVariables(isMC=isMC, mudict=mudict, metdict=metdict),
                ]
     # add before recoZproducer
     if jmeCorrections!=None: modules.insert(1,jmeCorrections())
