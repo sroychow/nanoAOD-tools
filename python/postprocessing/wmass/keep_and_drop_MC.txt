@@ -4,7 +4,7 @@ keep run*
 keep Pileup*
 keep luminosityBlock*
 keep genWeight*
-keep GenPart*
+drop GenPart*
 keep Generator*
 keep LHEPdfWeight*
 keep LHEScaleWeight*
@@ -12,6 +12,6 @@ keep LHEWeight*
 keep PV*
 keep Muon*
 keep MET*
-keep TkMET*
 keep GenMET*
+drop TkMET*
 drop PuppiMET*
