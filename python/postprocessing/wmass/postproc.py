@@ -22,7 +22,6 @@ from PhysicsTools.NanoAODTools.postprocessing.wmass.CSVariables import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.genVproducer import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.recoZproducer import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.harmonicWeights import *
-from PhysicsTools.NanoAODTools.postprocessing.examples.eventdumpModule import *
 
 class bcolors:
     HEADER = '\033[95m'
