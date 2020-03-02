@@ -22,6 +22,7 @@ from PhysicsTools.NanoAODTools.postprocessing.wmass.CSVariables import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.genVproducer import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.recoZproducer import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.harmonicWeights import *
+from PhysicsTools.NanoAODTools.postprocessing.examples.eventdumpModule import *
 
 class bcolors:
     HEADER = '\033[95m'
@@ -76,10 +77,6 @@ if crab:
     from PhysicsTools.NanoAODTools.postprocessing.framework.crabhelper import inputFiles,runsAndLumis
 
 ################################################ JEC
-"""print "JECTag =", bcolors.OKGREEN, jecTag,  bcolors.ENDC, \
-    "jesUncertainties =", bcolors.OKGREEN, jmeUncert,  bcolors.ENDC, \
-    "redoJec =", bcolors.OKGREEN, redojec,  bcolors.ENDC
-"""
 #Function definition
 #createJMECorrector(isMC=True, dataYear=2016, runPeriod="B", jesUncert="Total", redoJec=True, saveJets=False, crab=False)
 jmeCorrections = createJMECorrector(isMC=isMC, dataYear=dataYear, runPeriod=runPeriod, jesUncert=jesUncert, redojec=redojec, 
@@ -178,20 +175,19 @@ Wtypes = ['bare', 'preFSR', 'dress']
 ################################################
 
 ##This is temporary for testing purpose
-input_dir = "/gpfs/ddn/srm/cms/store/"
+#input_dir = "/gpfs/ddn/srm/cms/store/"
+input_dir = "/scratch/sroychow/nanov6/"
 #input_dir = "/eos/cms/store/"
 
 ifileMC = ""
 if dataYear==2016:
     #ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext2-v1/120000/FF69DF6E-2494-F543-95BF-F919B911CD23.root"
-    ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-400to500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext1-v1/250000/C2A438DF-D201-8041-B5E3-993774CBF099.root"
-    #input_dir = "/gpfs/ddn/srm/cms/store/user/emanca/"
-    #ifileMC = "NanoWMassV4/WJetsToLNu_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NanoWMass/190218_175825/0000/myNanoProdMc_NANO_41.root"
+    #ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-400to500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext1-v1/250000/C2A438DF-D201-8041-B5E3-993774CBF099.root"
+    ifileMC="081594F6-3B7A-0044-B7B8-D9F44C91B6E1.root"
+    #ifileMC="mynanoconfig_NANO_377.root"
 elif dataYear==2017:
-    #ifileMC = "mc/RunIIFall17NanoAODv4/DYJetsToLL_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano14Dec2018_102X_mc2017_realistic_v6-v1/20000/41874784-9F25-7C49-B4E3-6EECD93B77CA.root"    
     ifileMC = "mc/RunIIFall17NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano1June2019_102X_mc2017_realistic_v7-v1/20000/B1929C77-857F-CA47-B352-DE52C3D6F795.root"
 elif dataYear==2018:
-    #ifileMC = "mc/RunIIAutumn18NanoAODv4/DY2JetsToLL_M-50_TuneCP5_13TeV-madgraphMLM-pythia8/NANOAODSIM/Nano14Dec2018_102X_upgrade2018_realistic_v16-v1/270000/320474A7-2A79-E042-BD91-BD48021177A2.root"
     ifileMC = "mc/RunIIAutumn18NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/Nano1June2019_102X_upgrade2018_realistic_v19-v1/100000/FEF8F001-02FD-E449-B1FC-67C8653CDCEC.root"
 
 ifileDATA = ""
@@ -221,20 +217,20 @@ if isMC:
                    #recoZproducer(mudict=mudict, isMC=isMC),
                    #additionalVariables(isMC=isMC, mudict=mudict, metdict=metdict), 
                    genLeptonSelection(Wtypes=Wtypes), 
-                   #CSVariables(Wtypes=Wtypes), 
+                   CSVariables(Wtypes=Wtypes), ##switch this on
                    #genVproducer(Wtypes=Wtypes),
                    #harmonicWeights(Wtypes=Wtypes),
                    ]
         # add before recoZproducer
-        if muonScaleRes!=None: modules.insert(5, muonScaleRes())
-        if dataYear == 2016: 
-            pass
+        if muonScaleRes!= None: modules.insert(3, muonScaleRes())
+        #if dataYear == 2016: 
+        #    pass
             #modules.insert(2,lepSFTrig_GH())
             #modules.insert(3,lepSFID_GH())
             #modules.insert(4,lepSFISO_GH())
     elif genOnly: 
         modules = [genLeptonSelection(Wtypes=Wtypes, filterByDecay=True),
-                   #CSVariables(Wtypes=Wtypes),
+                   CSVariables(Wtypes=Wtypes),
                    #genVproducer(Wtypes=Wtypes)
                ]
     elif trigOnly: 
@@ -261,6 +257,8 @@ if isMC:
 else:
     kd_file += "_Data"
 kd_file += ".txt"
+
+print "Keep drop file used:", kd_file
 
 p = PostProcessor(outputDir=".",  
                   inputFiles=(input_files if crab==0 else inputFiles()),

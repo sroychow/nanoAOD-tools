@@ -48,8 +48,7 @@ def getCSangles(muon,neutrino):
 
     # compute PS point
     #print 'flip', flip_z, ': ', azimuth(Lp4_rot.Phi()*flip_z), ' --- ', math.atan2(Lp4_rot.Py()*flip_z,Lp4_rot.Px()*flip_z)
-    return [Lp4_rot.CosTheta()*flip_z, math.atan2(Lp4_rot.Py()*flip_z, Lp4_rot.Px()*flip_z)]
-
+    return [Lp4_rot.CosTheta()*flip_z, math.atan2(Lp4_rot.Py()*flip_z, Lp4_rot.Px())]
 
 class CSVariables(Module):
     def __init__(self,  Wtypes=['bare', 'preFSR', 'dress']):
