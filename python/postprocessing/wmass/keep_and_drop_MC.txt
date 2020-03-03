@@ -22,3 +22,4 @@ keep GenMu*
 keep GenNu*
 keep puWeight*
 keep GenV*
+keep PrefireWeight*

@@ -14,6 +14,7 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.muonScaleResProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.lepSFProducer_v2 import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.common.PrefireCorr import *
 
 from PhysicsTools.NanoAODTools.postprocessing.wmass.preSelection import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.additionalVariables import *
@@ -171,6 +172,15 @@ elif dataYear == 2018:
 
 Wtypes = ['bare', 'preFSR', 'dress']
 
+################################################PREFIRE Weights
+jetROOT='L1prefiring_jetpt_2016BtoH'
+photonROOT='L1prefiring_photonpt_2016BtoH'
+
+if dataYear == 2017: 
+    jetROOT='L1prefiring_jetpt_2017BtoF'
+    photonROOT='L1prefiring_photonpt_2017BtoF'
+
+prefireCorr= lambda : PrefCorr(jetroot=jetROOT + '.root', jetmapname=jetROOT, photonroot=photonROOT + '.root', photonmapname=photonROOT)
 ################################################
 
 ##This is temporary for testing purpose
@@ -212,6 +222,7 @@ if isMC:
 	           #lepSFTrig(),
                    #lepSFID(),
                    #lepSFISO(),
+                   prefireCorr(),
                    jmeCorrections(),
                    #recoZproducer(mudict=mudict, isMC=isMC),
                    #additionalVariables(isMC=isMC, mudict=mudict, metdict=metdict), 
@@ -239,8 +250,6 @@ if isMC:
 else:
     input_files.append( input_dir+ifileDATA )
     modules = [preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 
-               #recoZproducer(mudict=mudict, isMC=isMC),
-               #additionalVariables(isMC=isMC, mudict=mudict, metdict=metdict),
                ]
     # add before recoZproducer
     if jmeCorrections!=None: modules.insert(1,jmeCorrections())
