@@ -2,6 +2,7 @@ from WMCore.Configuration import Configuration
 from CRABClient.UserUtilities import config, getUsernameFromSiteDB
 import argparse
 import sys
+import subprocess
 
 class bcolors:
     HEADER = '\033[95m'
@@ -24,6 +25,8 @@ parser.add_argument('-genOnly',    '--genOnly',type=int, default=0,    help="")
 parser.add_argument('-trigOnly',    '--trigOnly',type=int, default=0,    help="")
 parser.add_argument('-run', '--run', type=str, default="submit", help="")
 parser.add_argument('-dbs', '--dbs', type=str, default="global", help="")
+parser.add_argument('-samples', '--samples', type=str, default="", help="")
+
 args = parser.parse_args()
 tag = args.tag
 isMC = args.isMC
@@ -35,7 +38,8 @@ genOnly   = args.genOnly
 trigOnly  = args.trigOnly
 run = args.run
 dbs = args.dbs
-samples = ('mc' if isMC else 'data')+'samples_'+str(dataYear)+'.txt'
+samples = args.samples
+#('mc' if isMC else 'data')+'samples_'+str(dataYear)+'.txt'
 print "tag =", bcolors.OKGREEN, tag, bcolors.ENDC, \
     ", isMC =", bcolors.OKGREEN, str(isMC), bcolors.ENDC, \
     ", genOnly =", bcolors.OKGREEN, str(genOnly), bcolors.ENDC, \
@@ -61,12 +65,16 @@ config.Data.inputDBS = dbs
 config.Data.splitting = 'FileBased'
 config.Data.unitsPerJob = 5
 #config.Data.totalUnits = 10
+catchphrase=''
 if not isMC:
     if dataYear==2016:
+        catchphrase='Summer16'
         config.Data.lumiMask = 'Cert_271036-284044_13TeV_23Sep2016ReReco_Collisions16_JSON.txt'
     elif dataYear==2017:
+        catchphrase='Fall17'
         config.Data.lumiMask = 'Cert_294927-306462_13TeV_EOY2017ReReco_Collisions17_JSON.txt'
     elif dataYear==2018:
+        catchphrase='Autumn18'
         config.Data.lumiMask = 'Cert_314472-325175_13TeV_PromptReco_Collisions18_JSON.txt'
     else:
         config.Data.lumiMask = 'TEST'
@@ -91,9 +99,13 @@ if __name__ == '__main__':
         jec_dir = '../data/jme/'
         if not os.path.isdir(backup_dir):
             os.system('mkdir '+backup_dir)
-        os.system('mv '+jec_dir+'Summer16*txt '+backup_dir)
-        os.system('mv '+jec_dir+'Fall17*txt '+backup_dir)
-        os.system('mv '+jec_dir+'Autumn18*txt '+backup_dir)
+        for ftar in os.listdir(jec_dir):
+            if catchphrase not in ftar:
+                subprocess.call(['mv', jec_dir + ftar, backup_dir])
+        #os.system('mv '+jec_dir+'*.tgz '+backup_dir)
+        #os.system('mv '+jec_dir+'*.gz '+backup_dir)
+        #os.system('mv '+jec_dir+'Fall17*txt '+backup_dir)
+        #os.system('mv '+jec_dir+'Autumn18*txt '+backup_dir)
         os.system('ls -tr '+jec_dir)
         os.system('du -h '+jec_dir)
 
@@ -149,7 +161,7 @@ if __name__ == '__main__':
 
     if run in ['submit', 'dryrun', 'debug']:
         print 'Restore the '+jec_dir
-        os.system('mv '+backup_dir+'Summer16*txt '+jec_dir)
-        os.system('mv '+backup_dir+'Fall17*txt '+jec_dir)
-        os.system('mv '+backup_dir+'Autumn18*txt '+jec_dir)
-    
+        subprocess.call(['mv', backup_dir + '/*', jec_dir])
+        #os.system('mv '+backup_dir+'*.tgz '+jec_dir)
+        #os.system('mv '+backup_dir+'*.gz '+jec_dir)
+    #    os.system('mv '+backup_dir+'Autumn18*txt '+jec_dir)    
