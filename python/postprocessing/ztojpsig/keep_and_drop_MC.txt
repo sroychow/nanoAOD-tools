@@ -19,3 +19,4 @@ keep HLT_MuonPhoton
 keep nVetoElectrons
 keep puWeight*
 keep PrefireWeight*
+keep TrigObj*

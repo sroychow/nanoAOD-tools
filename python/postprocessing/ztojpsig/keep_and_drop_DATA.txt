@@ -11,3 +11,4 @@ keep HLT_SingleMu27
 keep HLT_DimuonJpsi
 keep HLT_MuonPhoton
 keep nVetoElectrons
+keep TrigObj*
