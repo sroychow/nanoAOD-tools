@@ -9,10 +9,10 @@ from importlib import import_module
 from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import PostProcessor
 
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties import *
-from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.muonScaleResProducer import *
-#from PhysicsTools.NanoAODTools.postprocessing.modules.common.lepSFProducer_v2 import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.btv.btagSFProducer import *
+from PhysicsTools.NanoAODTools.postprocessing.modules.common.PrefireCorr import *
 
 from PhysicsTools.NanoAODTools.postprocessing.exoHiggs.preSelection import *
 from PhysicsTools.NanoAODTools.postprocessing.exoHiggs.triggerSelection import *
@@ -32,11 +32,13 @@ parser.add_argument('-jobNum',    '--jobNum',   type=int, default=1,      help="
 parser.add_argument('-crab',      '--crab',     type=int, default=0,      help="")
 parser.add_argument('-passall',   '--passall',  type=int, default=0,      help="")
 parser.add_argument('-isMC',      '--isMC',     type=int, default=1,      help="")
-parser.add_argument('-maxEvents', '--maxEvents',type=int, default=-1,	  help="")
+parser.add_argument('-maxEvents', '--maxEvents',type=int, default=-1,  help="")
 parser.add_argument('-dataYear',  '--dataYear', type=int, default=2016,   help="")
 parser.add_argument('-jesUncert', '--jesUncert',type=str, default="Total",help="")
-parser.add_argument('-redojec',   '--redojec',  type=int, default=0,      help="")
+parser.add_argument('-redojec',   '--redojec',  type=int, default=1,      help="")
 parser.add_argument('-runPeriod', '--runPeriod',type=str, default="B",    help="")
+parser.add_argument('-genOnly',    '--genOnly',type=int, default=0,    help="")
+parser.add_argument('-trigOnly',    '--trigOnly',type=int, default=0,    help="")
 args = parser.parse_args()
 isMC      = args.isMC
 crab      = args.crab
@@ -46,6 +48,8 @@ maxEvents = args.maxEvents
 runPeriod = args.runPeriod
 redojec   = args.redojec
 jesUncert = args.jesUncert
+genOnly   = args.genOnly
+trigOnly  = args.trigOnly
  
 print "isMC =", bcolors.OKGREEN, isMC, bcolors.ENDC, \
     "crab =", bcolors.OKGREEN, crab, bcolors.ENDC, \
@@ -62,7 +66,10 @@ if crab:
     "jesUncertainties =", bcolors.OKGREEN, jmeUncert,  bcolors.ENDC, \
     "redoJec =", bcolors.OKGREEN, redojec,  bcolors.ENDC
 """
-jmeCorrections = jetmetUncertainties2016 if isMC else jetRecalib2016BCD 
+#jmeCorrections = jetmetUncertainties2016 if isMC else jetRecalib2016BCD 
+jmeCorrectionsAK4 = createJMECorrector(isMC=isMC, dataYear=dataYear, runPeriod=runPeriod, jesUncert=jesUncert, redojec=redojec, jetType="AK4PFchs", noGroom=False, metBranchName="MET", applySmearing=True, isFastSim=False)
+jmeCorrectionsAK8 = createJMECorrector(isMC=isMC, dataYear=dataYear, runPeriod=runPeriod, jesUncert=jesUncert, redojec=redojec, jetType="AK8PFchs", noGroom=False, metBranchName="MET", applySmearing=True, isFastSim=False)
+
 ################################################ MET
 
 ################################################ PU
@@ -81,15 +88,31 @@ if dataYear==2017:
 elif dataYear==2018:
     muonScaleRes = muonScaleRes2018
     #print bcolors.OKBLUE, "No module %s will be run" % "muonScaleRes", bcolors.ENDC
+################################################ BTag SF
+btagSF= btagSF2016
+if dataYear==2017:
+    btagSF = btagSF2017
+
+################################################PREFIRE Weights
+jetROOT='L1prefiring_jetpt_2016BtoH'
+photonROOT='L1prefiring_photonpt_2016BtoH'
+
+if dataYear == 2017: 
+    jetROOT='L1prefiring_jetpt_2017BtoF'
+    photonROOT='L1prefiring_photonpt_2017BtoF'
+
+prefireCorr= lambda : PrefCorr(jetroot=jetROOT + '.root', jetmapname=jetROOT, photonroot=photonROOT + '.root', photonmapname=photonROOT)
     
 ################################################ GEN
 
 ##This is temporary for testing purpose
-input_dir = "/eos/cms/store/"
+#input_dir = "/eos/cms/store/"
+input_dir = "/eos/user/g/gsaha2/Exotic/SIGNAL_NANO/"
 
 ifileMC = ""
 if dataYear==2016:
-    ifileMC = "mc/RunIISummer16NanoAODv3/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/NANOAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/00000/7667A3B0-2509-E911-B82E-FA163E64DEEE.root"
+#    ifileMC = "mc/RunIISummer16NanoAODv3/DYJetsToLL_M-10to50_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/NANOAODSIM/PUMoriond17_94X_mcRun2_asymptotic_v3-v2/00000/7667A3B0-2509-E911-B82E-FA163E64DEEE.root"
+    ifileMC = "signal_ll4jmet_BP1_nano_719.root"
 elif dataYear==2017:#not correct
     ifileMC = "mc/RunIIFall17NanoAODv4/DYJetsToLL_0J_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano14Dec2018_102X_mc2017_realistic_v6-v1/20000/41874784-9F25-7C49-B4E3-6EECD93B77CA.root"    
 elif dataYear==2018:
@@ -109,11 +132,14 @@ modules = []
 if isMC:
     input_files.append( input_dir+ifileMC )
     modules = [    triggerModule(),
+                   preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 
+                   btagSF(),
+                   prefireCorr(), 
                    puWeightProducer(), 
-                   preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
-                   jmeCorrections(),
+                   jmeCorrectionsAK4(),
+                   jmeCorrectionsAK8()
               ]
-    # add before recoZproducer
+
     if muonScaleRes!=None: modules.insert(3, muonScaleRes())
 else:
     input_files.append( input_dir+ifileDATA )
@@ -121,9 +147,9 @@ else:
                 triggerModule(), 
 		preSelection(isMC=isMC, passall=passall, dataYear=dataYear)
               ]
-    # add before recoZproducer
+
     if jmeCorrections!=None: modules.insert(2,jmeCorrections())
-    # add before recoZproducer
+
     if muonScaleRes!=None:   modules.insert(2, muonScaleRes())
 
 treecut = ("Entry$<" + str(maxEvents) if maxEvents > 0 else None)

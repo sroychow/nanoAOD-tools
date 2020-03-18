@@ -26,10 +26,10 @@ class triggerSelection(Module):
 
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("HLT_SingleMu", "B", title="Event passes OR of all Single Muon HLT triggers")
-        self.out.branch("HLT_SingleEle", "B", title="Event passes OR of Single Electron HLT triggers")
-        self.out.branch("HLT_DoubleMu", "B", title="Event passes OR of all Double Muon HLT triggers")
-        self.out.branch("HLT_DoubleEle", "B", title="Event passes OR of Double Electron HLT triggers")
+        self.out.branch("user_HLT_SingleMu", "B", title="Event passes OR of all Single Muon HLT triggers")
+        self.out.branch("user_HLT_SingleEle", "B", title="Event passes OR of Single Electron HLT triggers")
+        self.out.branch("user_HLT_DoubleMu", "B", title="Event passes OR of all Double Muon HLT triggers")
+        self.out.branch("user_HLT_DoubleEle", "B", title="Event passes OR of Double Electron HLT triggers")
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -43,25 +43,25 @@ class triggerSelection(Module):
         for hlt in self.trigDict["SingleMu"]:
             if not hasattr(event, hlt): continue
             passSingleMu |= getattr(event, hlt)
-        self.out.fillBranch("HLT_SingleMu", int(passSingleMu))
+        self.out.fillBranch("user_HLT_SingleMu", int(passSingleMu))
 
         #Check trigger decisions##SingleEle
         for hlt in self.trigDict["SingleEle"]:
             if not hasattr(event, hlt): continue
             passSingleEle |= getattr(event, hlt)
-        self.out.fillBranch("HLT_SingleEle", int(passSingleEle))
+        self.out.fillBranch("user_HLT_SingleEle", int(passSingleEle))
 
         #Check trigger decisions##DoubleMu
         for hlt in self.trigDict["DoubleMu"]:
             if not hasattr(event, hlt): continue
             passDoubleMu |= getattr(event, hlt)
-        self.out.fillBranch("HLT_DoubleMu", int(passDoubleMu))
+        self.out.fillBranch("user_HLT_DoubleMu", int(passDoubleMu))
 
         #Check trigger decisions##DoubleEle
         for hlt in self.trigDict["DoubleEle"]:
             if not hasattr(event, hlt): continue
             passDoubleEle |= getattr(event, hlt)
-        self.out.fillBranch("HLT_DoubleEle", int(passDoubleEle))
+        self.out.fillBranch("user_HLT_DoubleEle", int(passDoubleEle))
 
         if not passSingleMu and not passSingleEle and not passDoubleMu and not passDoubleEle:
             return (False or self.passall)
