@@ -11,7 +11,6 @@ from PhysicsTools.NanoAODTools.postprocessing.framework.postprocessor import Pos
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.puWeightProducer import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.muonScaleResProducer import *
-from PhysicsTools.NanoAODTools.postprocessing.modules.common.lepSFProducer_v2 import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.PrefireCorr import *
 from PhysicsTools.NanoAODTools.postprocessing.ztojpsig.preSelection import *
 
@@ -92,8 +91,8 @@ prefireCorr= lambda : PrefCorr(jetroot=jetROOT + '.root', jetmapname=jetROOT, ph
 ################################################
 
 ##This is temporary for testing purpose
-#input_dir = "/gpfs/ddn/srm/cms/store/"
-input_dir = "/scratch/sroychow/nanov6/"
+input_dir = "/home/users/suvankar/jpsi/"
+
 ifileMC = ""
 if dataYear==2016:
     #ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext2-v1/120000/FF69DF6E-2494-F543-95BF-F919B911CD23.root"
@@ -101,7 +100,7 @@ if dataYear==2016:
     ifileMC="081594F6-3B7A-0044-B7B8-D9F44C91B6E1.root"
     #ifileMC="mynanoconfig_NANO_377.root"
 elif dataYear==2017:
-    ifileMC = "mc/RunIIFall17NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano1June2019_102X_mc2017_realistic_v7-v1/20000/B1929C77-857F-CA47-B352-DE52C3D6F795.root"
+    ifileMC = "82F9F8F8-0DE7-504A-8608-75452DC9C2CD.root"
 elif dataYear==2018:
     ifileMC = "mc/RunIIAutumn18NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/Nano1June2019_102X_upgrade2018_realistic_v19-v1/100000/FEF8F001-02FD-E449-B1FC-67C8653CDCEC.root"
 

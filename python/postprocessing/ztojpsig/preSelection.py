@@ -29,7 +29,7 @@ def tight_muon(mu):
     if not loose_muon(mu): return False
     if mu.pt < 200. and mu.isPFcand:
         return True
-    else mu.pt > 200. and mu.highPtId >= 1: 
+    elif mu.pt > 200. and mu.highPtId >= 1: 
 	return True
     return False
 
