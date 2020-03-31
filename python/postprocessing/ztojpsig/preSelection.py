@@ -85,10 +85,19 @@ class preSelection(Module):
         pass
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
+
         self.out.branch("HLT_SingleMu24", "B", title="Event passes OR of HLT triggers at 24 GeV")
+
         self.out.branch("HLT_SingleMu27", "B", title="Event passes OR of HLT triggers at 27 GeV")
-        self.out.branch("HLT_DimuonJpsi", "B", title="Event passes HLT_Dimuon25_Jpsi")
-        self.out.branch("HLT_MuonPhoton", "B", title="Event passes HLT_Mu17_Photon30_IsoCaloId")
+
+        self.out.branch("HLT_Dimuon25_Jpsi", "B", title="Event passes HLT_Dimuon25_Jpsi")
+
+        self.out.branch("HLT_Mu17_Photon30_IsoCaloId", "B", title="Event passes HLT_Mu17_Photon30_IsoCaloId")
+
+        self.out.branch("HLT_DoubleMu20_7_Mass0to30_Photon23", "B", title="Event passes HLT_DoubleMu20_7_Mass0to30_Photon23")
+
+        self.out.branch("HLT_DoubleMu4_3_Jpsi", "B", title="Event passes HLT_DoubleMu4_3_Jpsi")
+
         self.out.branch("MET_filters", "I", title="AND of all MET filters")
         self.out.branch("nVetoElectrons", "I", title="Number of veto electrons")
         self.out.branch("MET_filters", "I", title="AND of all MET filters")
@@ -117,15 +126,28 @@ class preSelection(Module):
         if hasattr(event, "HLT_Mu17_Photon30_IsoCaloId"):
             HLT_passMu17_Photon30 = getattr(event, "HLT_Mu17_Photon30_IsoCaloId")
 
-	HLT_passDimu_jpsi = False
+	HLT_passDimu25_jpsi = False
 	if hasattr(event, "HLT_Dimuon25_Jpsi"):
-	    HLT_passDimu_jpsi = getattr(event, "HLT_Dimuon25_Jpsi")
+	    HLT_passDimu25_jpsi = getattr(event, "HLT_Dimuon25_Jpsi")
+
+	HLT_DoubleMu20_7_Mass0to30_Photon23 = False
+	if hasattr(event, "HLT_DoubleMu20_7_Mass0to30_Photon23"):
+	    HLT_DoubleMu20_7_Mass0to30_Photon23 = getattr(event, "HLT_DoubleMu20_7_Mass0to30_Photon23")
+
+	HLT_DoubleMu4_3_Jpsi = False
+	if hasattr(event, "HLT_DoubleMu4_3_Jpsi"):
+	    HLT_DoubleMu4_3_Jpsi = getattr(event, "HLT_DoubleMu4_3_Jpsi")
+
+
 
         self.out.fillBranch("HLT_SingleMu24", int(HLT_pass24))
         self.out.fillBranch("HLT_SingleMu27", int(HLT_pass27))
-        self.out.fillBranch("HLT_DimuonJpsi", int(HLT_passDimu_jpsi))
-        self.out.fillBranch("HLT_MuonPhoton", int(HLT_passMu17_Photon30))
+        self.out.fillBranch("HLT_Dimuon25_Jpsi", int(HLT_passDimu25_jpsi))
+        self.out.fillBranch("HLT_Mu17_Photon30_IsoCaloId", int(HLT_passMu17_Photon30))
+        self.out.fillBranch("HLT_DoubleMu20_7_Mass0to30_Photon23", int(HLT_DoubleMu20_7_Mass0to30_Photon23))
+        self.out.fillBranch("HLT_DoubleMu4_3_Jpsi", int(HLT_DoubleMu4_3_Jpsi))
 
+       ##note-Ideally when running on data, should make sure atleast one of the trigges is fired
         
         # MET filters
         met_filters_AND = True

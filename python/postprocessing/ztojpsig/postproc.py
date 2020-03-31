@@ -91,17 +91,23 @@ prefireCorr= lambda : PrefCorr(jetroot=jetROOT + '.root', jetmapname=jetROOT, ph
 ################################################
 
 ##This is temporary for testing purpose
-input_dir = "/home/users/suvankar/jpsi/"
+input_dir = "/eos/user/s/sroychow/jpsi/nanoInput/"
+"""
+/eos/user/s/sroychow/jpsi/nanoInput/ZGTo2MuG_MMuM:
+A897EC1C-6A36-4149-BC29-6EE7BE5DC1E7.root
+
+/eos/user/s/sroychow/jpsi/nanoInput/ZToJPsiGamma:
+8EEB3BA0-9E04-AC44-AA78-ED82C143F4E3.root
+"""
+
 
 ifileMC = ""
-if dataYear==2016:
-    #ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext2-v1/120000/FF69DF6E-2494-F543-95BF-F919B911CD23.root"
-    #ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-400to500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext1-v1/250000/C2A438DF-D201-8041-B5E3-993774CBF099.root"
-    ifileMC="081594F6-3B7A-0044-B7B8-D9F44C91B6E1.root"
-    #ifileMC="mynanoconfig_NANO_377.root"
+if dataYear==2016:#has to be changed
+    ifileMC="ZToJPsiGamma/8EEB3BA0-9E04-AC44-AA78-ED82C143F4E3.root"
 elif dataYear==2017:
-    ifileMC = "82F9F8F8-0DE7-504A-8608-75452DC9C2CD.root"
-elif dataYear==2018:
+    ifileMC = "ZToJPsiGamma/8EEB3BA0-9E04-AC44-AA78-ED82C143F4E3.root"
+    #ifileMC = "ZGTo2MuG_MMuM/A897EC1C-6A36-4149-BC29-6EE7BE5DC1E7.root"
+elif dataYear==2018:#has to be chanched
     ifileMC = "mc/RunIIAutumn18NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/Nano1June2019_102X_upgrade2018_realistic_v19-v1/100000/FEF8F001-02FD-E449-B1FC-67C8653CDCEC.root"
 
 ifileDATA = ""
@@ -132,7 +138,7 @@ else:
     input_files.append( input_dir+ifileDATA )
     modules = [preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 
                muonScaleRes(),
-               jmeCorrections()
+               #jmeCorrections()
                ]
 treecut = ("Entry$<" + str(maxEvents) if maxEvents > 0 else None)
 kd_file = "keep_and_drop"
