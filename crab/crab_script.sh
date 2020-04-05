@@ -23,5 +23,5 @@ mv module $CMSSW_BASE/module
 mv python $CMSSW_BASE/python
 
 echo Found Proxy in: $X509_USER_PROXY
-python crab_script.py $1
+python postproc.py --jobNum=$1 --$2 --$3 --$4 --$5 --$6 --$7
 fi

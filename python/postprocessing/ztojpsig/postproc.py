@@ -91,7 +91,9 @@ prefireCorr= lambda : PrefCorr(jetroot=jetROOT + '.root', jetmapname=jetROOT, ph
 ################################################
 
 ##This is temporary for testing purpose
-input_dir = "/eos/user/s/sroychow/jpsi/nanoInput/"
+#input_dir = "/eos/user/s/sroychow/jpsi/nanoInput/"
+input_dir = "/eos/cms/store/"
+
 """
 /eos/user/s/sroychow/jpsi/nanoInput/ZGTo2MuG_MMuM:
 A897EC1C-6A36-4149-BC29-6EE7BE5DC1E7.root
@@ -117,7 +119,7 @@ if dataYear==2016:
     ifileDATA = "data/Run2016D/SingleMuon/NANOAOD/Nano1June2019-v1/40000/FBA773A7-6C8A-FA4A-AAB2-939609D9B339.root"
 elif dataYear==2017:
     #ifileDATA = "data/Run2017E/DoubleMuon/NANOAOD/31Mar2018-v1/710000/A452D873-4B6E-E811-BE23-FA163E60E3B4.root"
-    ifileDATA = "data/Run2017F/BTagCSV/NANOAOD/Nano1June2019-v1/40000/030D3C6F-240B-3247-961D-1A7C0922DC1F.root"
+    ifileDATA = "data/Run2017B/MuonEG/NANOAOD/Nano25Oct2019-v1/240000/14D82EAF-5DAC-274B-BA8E-6A761DB9B259.root"
 elif dataYear==2018:
     #ifileDATA = "data/Run2018D/SingleMuon/NANOAOD/14Sep2018_ver2-v1/110000/41819B10-A73F-BC4A-9CCC-FD93D80D5465.root"
     ifileDATA = "data/Run2018B/DoubleMuon/NANOAOD/Nano1June2019-v1/40000/20FCA3B4-6778-7441-B63C-307A21C7C2F0.root"
@@ -147,7 +149,7 @@ if isMC:
     #if genOnly: kd_file+= "GenOnly"
     #elif trigOnly: kd_file+= "TrigOnly"
 else:
-    kd_file += "_Data"
+    kd_file += "_DATA"
 kd_file += ".txt"
 
 print "Keep drop file used:", kd_file
