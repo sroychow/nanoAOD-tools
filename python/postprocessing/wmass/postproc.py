@@ -185,15 +185,12 @@ prefireCorr= lambda : PrefCorr(jetroot=jetROOT + '.root', jetmapname=jetROOT, ph
 
 ##This is temporary for testing purpose
 #input_dir = "/gpfs/ddn/srm/cms/store/"
-input_dir = "/scratch/sroychow/nanov6/"
-#input_dir = "/eos/cms/store/"
+#input_dir = "/scratch/sroychow/nanov6/"
+input_dir = "/eos/cms/store/"
 
 ifileMC = ""
 if dataYear==2016:
-    #ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-50_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext2-v1/120000/FF69DF6E-2494-F543-95BF-F919B911CD23.root"
-    #ifileMC = "mc/RunIISummer16NanoAODv5/DYJetsToLL_M-400to500_TuneCUETP8M1_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PUMoriond17_Nano1June2019_102X_mcRun2_asymptotic_v7_ext1-v1/250000/C2A438DF-D201-8041-B5E3-993774CBF099.root"
-    ifileMC="081594F6-3B7A-0044-B7B8-D9F44C91B6E1.root"
-    #ifileMC="mynanoconfig_NANO_377.root"
+    ifileMC="mc/RunIISummer16NanoAODv6/WJetsToLNu_TuneCUETP8M1_13TeV-madgraphMLM-pythia8/NANOAODSIM/PUMoriond17_Nano25Oct2019_102X_mcRun2_asymptotic_v7-v1/270000/589ACB48-C823-1442-BE9D-285A794B0DA7.root"
 elif dataYear==2017:
     ifileMC = "mc/RunIIFall17NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano1June2019_102X_mc2017_realistic_v7-v1/20000/B1929C77-857F-CA47-B352-DE52C3D6F795.root"
 elif dataYear==2018:
@@ -203,7 +200,7 @@ ifileDATA = ""
 if dataYear==2016:
     #ifileDATA = "data/Run2016D/DoubleEG/NANOAOD/Nano14Dec2018-v1/280000/481DA5C0-DF96-5640-B5D1-208F52CAC829.root"
     if not isMC: input_dir = 'root://xrootd.ba.infn.it//store/'
-    ifileDATA = "data/Run2016D/SingleMuon/NANOAOD/Nano1June2019-v1/40000/FBA773A7-6C8A-FA4A-AAB2-939609D9B339.root"
+    ifileDATA = "/data/Run2016C/SingleMuon/NANOAOD/Nano25Oct2019-v1/40000/F7FC207B-943C-3B48-9147-D83B838BE473.root"
 elif dataYear==2017:
     #ifileDATA = "data/Run2017E/DoubleMuon/NANOAOD/31Mar2018-v1/710000/A452D873-4B6E-E811-BE23-FA163E60E3B4.root"
     ifileDATA = "data/Run2017F/BTagCSV/NANOAOD/Nano1June2019-v1/40000/030D3C6F-240B-3247-961D-1A7C0922DC1F.root"
@@ -228,7 +225,7 @@ if isMC:
                    #additionalVariables(isMC=isMC, mudict=mudict, metdict=metdict), 
                    genLeptonSelection(Wtypes=Wtypes), 
                    CSVariables(Wtypes=Wtypes), ##switch this on
-                   #genVproducer(Wtypes=Wtypes),
+                   genVproducer(Wtypes=Wtypes),
                    #harmonicWeights(Wtypes=Wtypes),
                    ]
         # add before recoZproducer
@@ -241,7 +238,7 @@ if isMC:
     elif genOnly: 
         modules = [genLeptonSelection(Wtypes=Wtypes, filterByDecay=True),
                    CSVariables(Wtypes=Wtypes),
-                   #genVproducer(Wtypes=Wtypes)
+                   genVproducer(Wtypes=Wtypes)
                ]
     elif trigOnly: 
         modules = [puWeightProducer(),preSelection(isMC=True, passall=passall, dataYear=dataYear, trigOnly=True)]
