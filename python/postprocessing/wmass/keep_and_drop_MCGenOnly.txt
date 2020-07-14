@@ -7,6 +7,10 @@ keep LHEWeight*
 keep GenMET*
 keep *_mu1
 keep *_mu2
+keep Idx_*
 keep GenMu*
 keep GenNu*
 keep GenV*
+keep *Vtype*
+keep GenPart*
+keep GenDressedLepton*
