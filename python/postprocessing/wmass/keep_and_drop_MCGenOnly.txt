@@ -4,3 +4,9 @@ keep Generator*
 keep LHEPdfWeight*
 keep LHEScaleWeight*
 keep LHEWeight*
+keep GenMET*
+keep *_mu1
+keep *_mu2
+keep GenMu*
+keep GenNu*
+keep GenV*
