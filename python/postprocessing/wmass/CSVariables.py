@@ -1,59 +1,53 @@
 import ROOT
 import math
-import copy
-
 ROOT.PyConfig.IgnoreCommandLineOptions = True
 
-from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
+from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection 
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
 
 #global definition of CS angles
-#def azimuth(phi):
-#    if phi<0.0:
-#        phi += 2*math.pi
-#    return phi
+def getCSangles(muon, neutrino):
+    	
+    	m = ROOT.TLorentzVector()
+    	n = ROOT.TLorentzVector()
+    	w = ROOT.TLorentzVector()
+    	
+    	m.SetPtEtaPhiM(muon.pt, muon.eta, muon.phi, 0.105)
+        n.SetPtEtaPhiM(neutrino.pt, neutrino.eta, neutrino.phi, 0.)
+  		
+        w = m + n
 
-def getCSangles(muon,neutrino):
+        sign  = abs(w.Z())/w.Z()
+        
+        ProtonMass = 0.938
+        BeamEnergy = 6500.000
+        
+        p1 = ROOT.TLorentzVector()
+        p2 = ROOT.TLorentzVector()
+        
+        p1.SetPxPyPzE(0, 0, sign*BeamEnergy, math.sqrt(BeamEnergy*BeamEnergy+ProtonMass*ProtonMass)) 
+        p2.SetPxPyPzE(0, 0, -1*sign*BeamEnergy, math.sqrt(BeamEnergy*BeamEnergy+ProtonMass*ProtonMass))
+        
+        p1.Boost(-w.BoostVector())
+        p2.Boost(-w.BoostVector())
+        
+        CSAxis = (p1.Vect().Unit()-p2.Vect().Unit()).Unit() #quantise along axis that bisects the boosted beams
+        
+        yAxis = (p1.Vect().Unit()).Cross((p2.Vect().Unit())) #other axes
+        yAxis = yAxis.Unit()
+        xAxis = yAxis.Cross(CSAxis)
+        xAxis = xAxis.Unit()
 
-    Lp4  = ROOT.TLorentzVector(0.,0.,0.,0.)
-    Np4 = ROOT.TLorentzVector(0.,0.,0.,0.)
-    if hasattr(muon, "pt"):
-        Lp4.SetPtEtaPhiM(muon.pt, muon.eta, muon.phi, muon.mass)
-        Np4.SetPtEtaPhiM(neutrino.pt, neutrino.eta, neutrino.phi, 0.)
-    else:
-        Lp4.SetPtEtaPhiM(muon.Pt(), muon.Eta(), muon.Phi(), muon.M())
-        Np4.SetPtEtaPhiM(neutrino.Pt(), neutrino.Eta(), neutrino.Phi(), 0.)
-    Wp4 = Lp4 + Np4
-    
-    Wp4_rot = copy.deepcopy(Wp4)
-    Lp4_rot = copy.deepcopy(Lp4)
+        m.Boost(-w.BoostVector())
 
-    # align W/L along x axis
-    Wp4_rot.RotateZ( -Wp4.Phi() )
-    Lp4_rot.RotateZ( -Wp4.Phi() )
+        phi = math.atan2((m.Vect()*yAxis),(m.Vect()*xAxis))
+        if phi<0: phi = phi + 2*math.pi
+        
+        return math.cos(m.Angle(CSAxis)), phi
 
-    # first boost
-    boostL = Wp4_rot.BoostVector()
-    boostL.SetX(0.0)
-    boostL.SetY(0.0)
-    Lp4_rot.Boost( -boostL )
-    Wp4_rot.Boost( -boostL )
-
-    # second boost
-    boostT = Wp4_rot.BoostVector()
-    Lp4_rot.Boost( -boostT )
-
-    # the CS frame defines the z-axis according to the W pz in the lab 
-    flip_z = -1 if Wp4.Rapidity()<0.0 else +1
-
-    # compute PS point
-    #print 'flip', flip_z, ': ', azimuth(Lp4_rot.Phi()*flip_z), ' --- ', math.atan2(Lp4_rot.Py()*flip_z,Lp4_rot.Px()*flip_z)
-    return [Lp4_rot.CosTheta()*flip_z, math.atan2(Lp4_rot.Py()*flip_z, Lp4_rot.Px())]
 
 class CSVariables(Module):
-    def __init__(self,  Wtypes=['bare', 'preFSR', 'dress']):
-        self.Wtypes = Wtypes
-        self.vars = ['CStheta','CSphi']
+    def __init__(self):
         pass
     def beginJob(self):
         pass
@@ -61,40 +55,60 @@ class CSVariables(Module):
         pass
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        for t in self.Wtypes:
-            for v in self.vars:
-                self.out.branch("GenV_%s_%s" % (t,v), "F")
 
+        self.out.branch("CStheta_bare", "F")
+        self.out.branch("CStheta_dress", "F")
+        self.out.branch("CStheta_preFSR", "F")
+
+        self.out.branch("CSphi_bare", "F")
+        self.out.branch("CSphi_dress", "F")
+        self.out.branch("CSphi_preFSR", "F")
+        
+        
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
 
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
 
-        results = {}
-        for t in self.Wtypes:
-            for v in self.vars:
-                results[t+'_'+v] = 0.0
-            
-        if abs(event.genVtype) in [13,14]:
-            genParticles = Collection(event, "GenPart")
-            genDressedLeptons = Collection(event,"GenDressedLepton")
-            idx_nu = event.Idx_nu
-            for t in self.Wtypes:
-                genCollection = genParticles if t in ["bare", "preFSR"] else genDressedLeptons
-                idx_mu1 = getattr(event, "Idx_"+t+"_mu1")
-                idx_mu2 = getattr(event, "Idx_"+t+"_mu2")
-                if idx_mu1>=0:
-                    ps = getCSangles(genCollection[idx_mu1], (genParticles[idx_nu] if idx_nu>=0 else genCollection[idx_mu2]) )
-                    for iv,v in enumerate(self.vars):
-                        results["%s_%s" % (t,v)] = ps[iv]
+        genParticles = Collection(event, "GenPart")
+        genDressedLeptons = Collection(event,"GenDressedLepton")
 
-        for t in self.Wtypes:
-            for v in self.vars:
-                self.out.fillBranch("GenV_%s_%s" % (t,v), results["%s_%s" % (t,v)])
+        # reobtain the indices of the good muons and the neutrino
+        
+        bareMuonIdx = event.GenPart_bareMuonIdx
+        NeutrinoIdx = event.GenPart_NeutrinoIdx
+        preFSRMuonIdx = event.GenPart_preFSRMuonIdx
+        dressMuonIdx = event.GenDressedLepton_dressMuonIdx
+        
+        if bareMuonIdx >= 0 and NeutrinoIdx >= 0:
+            CStheta_bare, CSphi_bare = getCSangles(genParticles[bareMuonIdx], genParticles[NeutrinoIdx])
+        else:
+            CStheta_bare, CSphi_bare = -99., -99.
+
+        if preFSRMuonIdx >= 0 and NeutrinoIdx >= 0:
+            CStheta_preFSR, CSphi_preFSR = getCSangles(genParticles[preFSRMuonIdx], genParticles[NeutrinoIdx])
+        else: 
+            CStheta_preFSR, CSphi_preFSR = -99., -99.
+
+        if dressMuonIdx  >= 0 and NeutrinoIdx >= 0:
+            CStheta_dress, CSphi_dress = getCSangles(genDressedLeptons[dressMuonIdx], genParticles[NeutrinoIdx])
+        else:
+            CStheta_dress, CSphi_dress = -99., -99.
+
+        
+        self.out.fillBranch("CStheta_bare",CStheta_bare)
+        self.out.fillBranch("CSphi_bare",CSphi_bare)
+
+        self.out.fillBranch("CStheta_preFSR",CStheta_preFSR)
+        self.out.fillBranch("CSphi_preFSR",CSphi_preFSR)
+
+        self.out.fillBranch("CStheta_dress",CStheta_dress)
+        self.out.fillBranch("CSphi_dress",CSphi_dress)
 
         return True
 
+
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
 
-CSAngleModule = lambda : CSVariables()
+CSAngleModule = lambda : CSVariables() 

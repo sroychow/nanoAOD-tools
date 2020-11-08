@@ -1,3 +1,4 @@
+from PhysicsTools.NanoAODTools.postprocessing.wmass.harmonicWeights import *
 #!/usr/bin/env python
 import os, sys
 import ROOT
@@ -13,16 +14,12 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetUncertainties im
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetRecalib import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.jme.jetmetHelperRun2 import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.muonScaleResProducer import *
-from PhysicsTools.NanoAODTools.postprocessing.modules.common.lepSFProducer_v2 import *
 from PhysicsTools.NanoAODTools.postprocessing.modules.common.PrefireCorr import *
 
 from PhysicsTools.NanoAODTools.postprocessing.wmass.preSelection import *
-from PhysicsTools.NanoAODTools.postprocessing.wmass.additionalVariables import *
-from PhysicsTools.NanoAODTools.postprocessing.wmass.genLepSelection import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.CSVariables import *
-from PhysicsTools.NanoAODTools.postprocessing.wmass.genVproducer import *
-from PhysicsTools.NanoAODTools.postprocessing.wmass.recoZproducer import *
-from PhysicsTools.NanoAODTools.postprocessing.wmass.harmonicWeights import *
+from PhysicsTools.NanoAODTools.postprocessing.wmass.Wproducer import *
+from PhysicsTools.NanoAODTools.postprocessing.wmass.genLepSelection import *
 
 class bcolors:
     HEADER = '\033[95m'
@@ -37,7 +34,7 @@ class bcolors:
 parser = argparse.ArgumentParser("")
 parser.add_argument('-jobNum',    '--jobNum',   type=int, default=1,      help="")
 parser.add_argument('-crab',      '--crab',     type=int, default=0,      help="")
-parser.add_argument('-passall',   '--passall',  type=int, default=0,      help="")
+parser.add_argument('-passall',   '--passall',  type=int, default=1,      help="")#####CHANGE THIS
 parser.add_argument('-isMC',      '--isMC',     type=int, default=1,      help="")
 parser.add_argument('-maxEvents', '--maxEvents',type=int, default=-1,	  help="")
 parser.add_argument('-dataYear',  '--dataYear', type=int, default=2016,   help="")
@@ -81,29 +78,6 @@ if crab:
 #createJMECorrector(isMC=True, dataYear=2016, runPeriod="B", jesUncert="Total", redoJec=True, saveJets=False, crab=False)
 jmeCorrections = createJMECorrector(isMC=isMC, dataYear=dataYear, runPeriod=runPeriod, jesUncert=jesUncert, redojec=redojec, 
                                     jetType="AK4PFchs", noGroom=False, metBranchName="MET", applySmearing=True, isFastSim=False)
-################################################ MET
-# MET dictionary 
-doJERVar     = True
-doJESVar     = True
-doUnclustVar = True
-metdict = {
-    "PF" : { "tag" : "MET",  "systs"  : [""] },
-    #"TK"    : { "tag" : "TkMET",    "systs"  : [""] },
-    #"puppi" : { "tag" : "PuppiMET", "systs"  : [""] },
-    }
-
-if jmeCorrections!=None:
-    metdict["PF"]["systs"].extend( ["nom"] ) 
-
-if isMC:
-    metdict["GEN"] = {"tag" : "GenMET", "systs"  : [""]}
-    if doJERVar:
-        metdict["PF"]["systs"].extend( ["jerUp", "jerDown"] )
-    if doJESVar:
-        metdict["PF"]["systs"].extend( ["jesTotalUp", "jesTotalDown"] )
-    if doUnclustVar:
-        metdict["PF"]["systs"].extend( ["unclustEnUp", "unclustEnDown"] )
-
 ################################################ PU
 #pu reweight modules
 puWeightProducer = puWeight_2016
@@ -120,66 +94,14 @@ if dataYear==2017:
 elif dataYear==2018:
     muonScaleRes = muonScaleRes2018
     #print bcolors.OKBLUE, "No module %s will be run" % "muonScaleRes", bcolors.ENDC
-    
-# muon dictionary
-mudict = {}
-#mudict = { "PF" : { "tag" : "Muon", "systs" : [""] } }
-if dataYear in [2016, 2017, 2018]:
-    pass
-    #mudict["roccor"] = { "tag" : "Muon",   "systs"  : ["corrected", "correctedUp",  "correctedDown"] }
-if isMC:
-    mudict["GEN"] = { "tag" : "GenMuon",  "systs" : ["bare"] }
-    # these exist only for 2017
-    #if dataYear==2017:
-    #mudict["roccor"]["systs"] = ["corrected", "correctedUp",  "correctedDown"]    
-
-##Muon SF
-triggerHisto = {2016:['IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio', 'IsoMu24_OR_IsoTkMu24_PtEtaBins/pt_abseta_ratio'], 
-                2017:['IsoMu27_PtEtaBins/pt_abseta_ratio', 'IsoMu27_PtEtaBins/pt_abseta_ratio'], 
-                2018:['IsoMu24_PtEtaBins/pt_abseta_ratio', 'IsoMu24_PtEtaBins/pt_abseta_ratio']
-                }
-idHisto = {2016: ["NUM_MediumID_DEN_genTracks_eta_pt", "NUM_MediumID_DEN_genTracks_eta_pt_stat", "NUM_MediumID_DEN_genTracks_eta_pt_syst"], 
-           2017: ["NUM_MediumID_DEN_genTracks_pt_abseta", "NUM_MediumID_DEN_genTracks_pt_abseta_stat", "NUM_MediumID_DEN_genTracks_pt_abseta_syst"],
-           2018: ["NUM_MediumID_DEN_genTracks_pt_abseta", "NUM_MediumID_DEN_genTracks_pt_abseta"]
-           }
-
-isoHisto = {2016: ["NUM_TightRelIso_DEN_MediumID_eta_pt", "NUM_TightRelIso_DEN_MediumID_eta_pt_stat", "NUM_TightRelIso_DEN_MediumID_eta_pt_syst"],
-            2017: ["NUM_TightRelIso_DEN_MediumID_pt_abseta", "NUM_TightRelIso_DEN_MediumID_pt_abseta_stat", "NUM_TightRelIso_DEN_MediumID_pt_abseta_syst"],
-            2018: ["NUM_TightRelIso_DEN_MediumID_pt_abseta", "NUM_TightRelIso_DEN_MediumID_pt_abseta"]
-            }
-##This is required beacuse for 2016 ID SF, binning is done for eta;x-axis is eta
-##But in any case, maybe useful if POG decides to switch from abs(eta) to eta
-##Not used for Trigger
-useAbsEta = { 2016 : False, 2017 : True, 2018 : True}
-ptEtaAxis = { 2016 : False, 2017 : True, 2018 : True}
-
-if dataYear == 2016:
-    lepSFTrig = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "Trigger", histos=triggerHisto[dataYear], dataYear=str(dataYear), runPeriod="BCDEF")
-    lepSFTrig_GH = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "Trigger", histos=triggerHisto[dataYear], dataYear=str(dataYear), runPeriod="GH")
-    lepSFID   = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "ID", histos=idHisto[dataYear], dataYear=str(dataYear), runPeriod="BCDEF", useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear])
-    lepSFISO  = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "ISO", histos=isoHisto[dataYear], dataYear=str(dataYear), runPeriod="BCDEF", useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear])
-    lepSFID_GH   = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "ID", histos=idHisto[dataYear], dataYear=str(dataYear), runPeriod="GH", useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear])
-    lepSFISO_GH  = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "ISO", histos=isoHisto[dataYear], dataYear=str(dataYear), runPeriod="GH", useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear])
-elif dataYear == 2017:
-    lepSFTrig = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "Trigger", histos=triggerHisto[dataYear], dataYear=str(dataYear), runPeriod="BCDEF")
-    lepSFID   = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "ID", histos=idHisto[dataYear], dataYear=str(dataYear), runPeriod="BCDEF", useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear])
-    lepSFISO  = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "ISO", histos=isoHisto[dataYear], dataYear=str(dataYear), runPeriod="BCDEF", useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear])
-elif dataYear == 2018:
-    lepSFTrig = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "Trigger", histos=triggerHisto[dataYear], dataYear=str(dataYear), runPeriod="ABCD")
-    lepSFID   = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "ID", histos=idHisto[dataYear], dataYear=str(dataYear), runPeriod="ABCD", useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear])
-    lepSFISO  = lambda : lepSFProducerV2(lepFlavour="Muon", cut = "ISO", histos=isoHisto[dataYear], dataYear=str(dataYear), runPeriod="ABCD", useAbseta=useAbsEta[dataYear], ptEtaAxis=ptEtaAxis[dataYear])
 ################################################ GEN
-
 Wtypes = ['bare', 'preFSR', 'dress']
-
 ################################################PREFIRE Weights
 jetROOT='L1prefiring_jetpt_2016BtoH'
 photonROOT='L1prefiring_photonpt_2016BtoH'
-
 if dataYear == 2017: 
     jetROOT='L1prefiring_jetpt_2017BtoF'
     photonROOT='L1prefiring_photonpt_2017BtoF'
-
 prefireCorr= lambda : PrefCorr(jetroot=jetROOT + '.root', jetmapname=jetROOT, photonroot=photonROOT + '.root', photonmapname=photonROOT)
 ################################################
 
@@ -216,29 +138,18 @@ if isMC:
     if (not genOnly and not trigOnly):
         modules = [puWeightProducer(), 
                    preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
-	           #lepSFTrig(),
-                   #lepSFID(),
-                   #lepSFISO(),
                    prefireCorr(),
                    jmeCorrections(),
-                   #recoZproducer(mudict=mudict, isMC=isMC),
-                   #additionalVariables(isMC=isMC, mudict=mudict, metdict=metdict), 
-                   genLeptonSelection(Wtypes=Wtypes), 
-                   CSVariables(Wtypes=Wtypes), ##switch this on
-                   genVproducer(Wtypes=Wtypes),
-                   #harmonicWeights(Wtypes=Wtypes),
+	           genLeptonSelectModule(),
+		   CSAngleModule(), 
+	           WproducerModule()
                    ]
         # add before recoZproducer
         if muonScaleRes!= None: modules.insert(3, muonScaleRes())
-        #if dataYear == 2016: 
-        #    pass
-            #modules.insert(2,lepSFTrig_GH())
-            #modules.insert(3,lepSFID_GH())
-            #modules.insert(4,lepSFISO_GH())
     elif genOnly: 
-        modules = [genLeptonSelection(Wtypes=Wtypes, filterByDecay=True),
-                   CSVariables(Wtypes=Wtypes),
-                   genVproducer(Wtypes=Wtypes)
+        modules = [genLeptonSelectModule(),
+                   CSAngleModule(),
+                   WproducerModule()
                ]
     elif trigOnly: 
         modules = [puWeightProducer(),preSelection(isMC=True, passall=passall, dataYear=dataYear, trigOnly=True)]
@@ -248,9 +159,7 @@ else:
     input_files.append( input_dir+ifileDATA )
     modules = [preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 
                ]
-    # add before recoZproducer
     if jmeCorrections!=None: modules.insert(1,jmeCorrections())
-    # add before recoZproducer
     if muonScaleRes!=None:   modules.insert(1, muonScaleRes())
 
 treecut = ("Entry$<" + str(maxEvents) if maxEvents > 0 else None)
