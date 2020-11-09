@@ -34,3 +34,5 @@ keep genVtype
 keep *bare
 keep *preFSR
 keep *dress
+keep scale*
+keep pdf*

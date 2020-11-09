@@ -19,6 +19,7 @@ from PhysicsTools.NanoAODTools.postprocessing.wmass.preSelection import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.CSVariables import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.Wproducer import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.genLepSelection import *
+from PhysicsTools.NanoAODTools.postprocessing.wmass.lheWeightsFlattener import *
 
 class bcolors:
     HEADER = '\033[95m'
@@ -111,12 +112,12 @@ prefireCorr= lambda : PrefCorr(jetroot=jetROOT + '.root', jetmapname=jetROOT, ph
 ################################################
 
 ##This is temporary for testing purpose
-input_dir = "/gpfs/ddn/srm/cms/store/"
-#input_dir = "/eos/cms/store/"
+#input_dir = "/gpfs/ddn/srm/cms/store/"
+input_dir = "root://cms-xrd-global.cern.ch//eos/cms/store/"
 
 ifileMC = ""
 if dataYear==2016:
-    ifileMC="user/sroychow/UL2016NANOAODSIM/WplusJetsToMuNu_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/NanoAODv8/201028_170443/0000/SMP-RunIISummer16NanoAODv8-wmassNano-preVFP_130.root"
+    ifileMC="/cmst3/group/wmass/w-mass-13TeV/NanoAOD/DYJetsToMuMu_M-50_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/NanoAODv7/201025_173845/0000/SMP-RunIISummer16NanoAODv7-00336_1.root"
 elif dataYear==2017:
     ifileMC = "mc/RunIIFall17NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano1June2019_102X_mc2017_realistic_v7-v1/20000/B1929C77-857F-CA47-B352-DE52C3D6F795.root"
 elif dataYear==2018:
@@ -140,12 +141,13 @@ if isMC:
     else : input_files.append( inputFile )
     if (not genOnly and not trigOnly):
         modules = [puWeightProducer(), 
-                   preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
-                   prefireCorr(),
-                   jmeCorrections(),
-	           genLeptonSelectModule(),
-		   CSAngleModule(), 
-	           WproducerModule()
+                    preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
+                    prefireCorr(),
+                    jmeCorrections(),
+	                genLeptonSelectModule(),
+		            CSAngleModule(), 
+	                WproducerModule(),
+	                flattenLheWeightsModule(),
                    ]
         # add before recoZproducer
         if muonScaleRes!= None: modules.insert(3, muonScaleRes())
