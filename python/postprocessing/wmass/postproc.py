@@ -1,4 +1,3 @@
-from PhysicsTools.NanoAODTools.postprocessing.wmass.harmonicWeights import *
 #!/usr/bin/env python
 import os, sys
 import ROOT
@@ -43,6 +42,8 @@ parser.add_argument('-redojec',   '--redojec',  type=int, default=0,      help="
 parser.add_argument('-runPeriod', '--runPeriod',type=str, default="B",    help="")
 parser.add_argument('-genOnly',    '--genOnly',type=int, default=0,    help="")
 parser.add_argument('-trigOnly',    '--trigOnly',type=int, default=0,    help="")
+parser.add_argument('-iFile',    '--iFile',type=str, default="",    help="")
+
 args = parser.parse_args()
 isMC      = args.isMC
 crab      = args.crab
@@ -54,6 +55,7 @@ redojec   = args.redojec
 jesUncert = args.jesUncert
 genOnly   = args.genOnly
 trigOnly  = args.trigOnly
+inputFile=args.iFile
  
 print "isMC =", bcolors.OKBLUE, isMC, bcolors.ENDC, \
     "genOnly =", bcolors.OKBLUE, genOnly, bcolors.ENDC, \
@@ -132,9 +134,10 @@ if not isMC:
 
 input_files = []
 modules = []
-
 if isMC:
-    input_files.append( input_dir+ifileMC )
+    if inputFile == '' :     #this will run on the hardcoded file above
+        input_files.append( input_dir + ifileMC )
+    else : input_files.append( inputFile )
     if (not genOnly and not trigOnly):
         modules = [puWeightProducer(), 
                    preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
@@ -156,7 +159,9 @@ if isMC:
     else:
         modules = []
 else:
-    input_files.append( input_dir+ifileDATA )
+    if inputFile == '' : #this will run on the hardcoded file above     
+        input_files.append( input_dir + ifileDATA )
+    else : input_files.append( inputFile )
     modules = [preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 
                ]
     if jmeCorrections!=None: modules.insert(1,jmeCorrections())
