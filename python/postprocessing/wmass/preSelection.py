@@ -93,7 +93,7 @@ class preSelection(Module):
         self.out.branch("Idx_mu1", "I", title="index of W-like muon / index of Z-like 1st muon")
         self.out.branch("Idx_mu2", "I", title="index of Z-like 2nd muon")
         self.out.branch("Vtype", "I", title="0:W-like; 1:Fake-like; 2:Z-like; 3:SS-dimuon; 4:OS Loose Idonly dimuon")
-        self.out.branch("Vtype_subcat", "I", title="0:For all Vtypes except 4; 1 = leading mu isolated & sub-leading anti-isolated; 2 = both anti-isolated")
+        self.out.branch("Vtype_subcat", "I", title="0:For all Vtypes except 4; 1 = leading mu isolated & sub-leading anti-isolated;2 = both anti-isolated")
         self.out.branch("MET_filters", "I", title="AND of all MET filters")
         self.out.branch("nVetoElectrons", "I", title="Number of veto electrons")
         self.out.branch("IsTObjmatched_mu1", "B", title="Is muon1 mathced to trigger obj")
@@ -168,7 +168,8 @@ class preSelection(Module):
             if len(looseIdonly_muons)==2 and (looseIdonly_muons[0][0].charge + looseIdonly_muons[1][0].charge)== 0:
                 (idx1, idx2) = (looseIdonly_muons[0][1], looseIdonly_muons[1][1])
                 event_flag = 4
-                if looseIdonly_muons[0][0].pfRelIso04_all < 0.15 and looseIdonly_muons[1][0].pfRelIso04_all >= 0.15:
+                if (looseIdonly_muons[0][0].pfRelIso04_all < 0.15 and looseIdonly_muons[1][0].pfRelIso04_all >= 0.15) or \
+                   (looseIdonly_muons[1][0].pfRelIso04_all < 0.15 and looseIdonly_muons[0][0].pfRelIso04_all >= 0.15) :
                     event_subcat = 1
                 elif looseIdonly_muons[0][0].pfRelIso04_all >= 0.15 and looseIdonly_muons[1][0].pfRelIso04_all >= 0.15:
                     event_subcat = 2
