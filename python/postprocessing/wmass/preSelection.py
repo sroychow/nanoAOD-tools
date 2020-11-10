@@ -93,7 +93,7 @@ class preSelection(Module):
         self.out.branch("Idx_mu1", "I", title="index of W-like muon / index of Z-like 1st muon")
         self.out.branch("Idx_mu2", "I", title="index of Z-like 2nd muon")
         self.out.branch("Vtype", "I", title="0:W-like; 1:Fake-like; 2:Z-like; 3:SS-dimuon; 4:OS Loose Idonly dimuon")
-        self.out.branch("Vtype_subcat", "I", title="0:For all Vtypes except 4; 1 = leading mu isolated & sub-leading anti-isolated;2 = both anti-isolated")
+        self.out.branch("Vtype_subcat", "I", title="0:For all Vtypes except 4; 1 = leading mu isolated & sub-leading anti-isolated; 2 = both anti-isolated")
         self.out.branch("MET_filters", "I", title="AND of all MET filters")
         self.out.branch("nVetoElectrons", "I", title="Number of veto electrons")
         self.out.branch("IsTObjmatched_mu1", "B", title="Is muon1 mathced to trigger obj")
