@@ -10,9 +10,9 @@ You need to setup python 2.7 and a recent ROOT version first.
     cmsenv	   
     voms-proxy-init --voms cms
     source /cvmfs/cms.cern.ch/crab3/crab.sh
-    git clone https://github.com/bianchini/nanoAOD-tools.git PhysicsTools/NanoAODTools
+    git clone https://github.com/sroychow/nanoAOD-tools.git PhysicsTools/NanoAODTools
     cd PhysicsTools/NanoAODTools
-    git checkout lorenzoul
+    git checkout wmassul
     scram b -j 8
 
 ## Run local tests
