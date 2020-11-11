@@ -6,7 +6,7 @@ Tools for working with NanoAOD (requiring only python + root, not CMSSW)
 You need to setup python 2.7 and a recent ROOT version first.
 
     cmsrel CMSSW_10_6_18/
-    cd CMSSW_10_6_18//src/
+    cd CMSSW_10_6_18/src/
     cmsenv	   
     voms-proxy-init --voms cms
     source /cvmfs/cms.cern.ch/crab3/crab.sh
