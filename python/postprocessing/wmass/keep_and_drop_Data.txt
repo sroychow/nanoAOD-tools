@@ -1,0 +1,15 @@
+drop * 
+keep event*
+keep run*
+keep luminosityBlock*
+keep Muon*
+keep event*
+keep MET*
+drop TkMET*
+keep PV*
+keep HLT_SingleMu24
+keep HLT_SingleMu27
+keep nVetoElectrons
+keep *Vtype*
+keep *_mu1
+keep *_mu2

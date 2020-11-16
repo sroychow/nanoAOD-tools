@@ -32,8 +32,8 @@ float WeightCalculatorFromHistogram::getWeight(float x, float y) const {
 
 float WeightCalculatorFromHistogram::getWeightErr(float x, float y) const {
   if(histogram_==NULL) {
-    std::cout << "ERROR! The weights input histogram is not loaded. Returning weight error 1!" << std::endl;
-    return 1.;
+    std::cout << "ERROR! The weights input histogram is not loaded. Returning weight 0!" << std::endl;
+    return 0.;
   }
   if(!histogram_->InheritsFrom("TH2")) {
     int bin = std::max(1, std::min(histogram_->GetNbinsX(), histogram_->GetXaxis()->FindBin(x)));

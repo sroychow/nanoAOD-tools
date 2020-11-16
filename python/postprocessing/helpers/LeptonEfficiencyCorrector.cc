@@ -13,7 +13,9 @@ class LeptonEfficiencyCorrector {
  public:
 
   LeptonEfficiencyCorrector() {effmaps_.clear();}
+  LeptonEfficiencyCorrector(std::string files, std::string histos);
   LeptonEfficiencyCorrector(std::vector<std::string> files, std::vector<std::string> histos);
+ 
   ~LeptonEfficiencyCorrector() {}
 
   void setLeptons(int nLep, int *lepPdgId, float *lepPt, float *lepEta);
@@ -29,6 +31,25 @@ private:
   float *Lep_eta_, *Lep_pt_;
   int *Lep_pdgId_;
 };
+
+LeptonEfficiencyCorrector:: LeptonEfficiencyCorrector(std::string files, std::string histos) {
+  effmaps_.clear();
+  TFile *f = TFile::Open(files.c_str(),"read");
+  if(!f) {
+    std::cout << "WARNING! File " << files << " cannot be opened. Skipping this scale factor " << std::endl;
+    return;
+  }
+  TH2F *hist = (TH2F*)(f->Get(histos.c_str()))->Clone(("eff_"+histos).c_str());
+  hist->SetDirectory(0);
+  if(!hist) {
+    std::cout << "ERROR! Histogram " << histos << " not in file " << files << ". Not considering this SF. " << std::endl;
+    return;
+  } else {
+    std::cout << "Loading histogram " << histos << " from file " << files << "... " << std::endl;
+  }
+  effmaps_.push_back(hist);
+  f->Close();
+}
 
 LeptonEfficiencyCorrector:: LeptonEfficiencyCorrector(std::vector<std::string> files, std::vector<std::string> histos) {
   effmaps_.clear();
