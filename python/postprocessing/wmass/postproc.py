@@ -188,7 +188,8 @@ p = PostProcessor(outputDir=".",
                   provenance=True,
                   outputbranchsel=kd_file,
                   fwkJobReport=(False if crab==0 else True),
-                  jsonInput=(None if crab==0 else runsAndLumis())
+                  jsonInput=(None if crab==0 else runsAndLumis()),
+                  compression="LZMA:9"
                   )
 p.run()
 

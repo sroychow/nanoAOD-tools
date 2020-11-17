@@ -5,7 +5,10 @@ class lheWeightsFlattener(Module):
     def __init__(self):
         self.NumNNPDFWeights = 103
         self.NumScaleWeights = 18 # 18 for MiNNLO since it has NNPDF3.0 weights too, 9 for other samples
-        pass
+        self.maxMassShift = 100
+        self.massGrid = 10
+        self.cenMassWgt = 11
+
     def beginJob(self):
         pass
     def endJob(self):
@@ -13,22 +16,21 @@ class lheWeightsFlattener(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
         self.initReaders(inputTree)
-        self.out.branch("scaleWeightMuR1MuF1", "F")
-        self.out.branch("scaleWeightMuR1MuF2", "F")
-        self.out.branch("scaleWeightMuR1MuF05", "F")
-        self.out.branch("scaleWeightMuR05MuF1", "F")
-        self.out.branch("scaleWeightMuR05MuF2", "F")
-        self.out.branch("scaleWeightMuR05MuF05", "F")
-        self.out.branch("scaleWeightMuR2MuF1", "F")
-        self.out.branch("scaleWeightMuR2MuF2", "F")
-        self.out.branch("scaleWeightMuR2MuF05", "F")
+        for varPair in [("05","05"), ("05","1"), ("05", "2"), ("1", "05"), \
+                ("1","1"), ("1","2"), ("2", "05"), ("2", "1"), ("2", "2")]:
+            self.out.branch("scaleWeightMuR%sMuF%s" % varPair, "F")
 
         for i in range(self.NumNNPDFWeights):
             self.out.branch("pdfWeightNNPDF%i" % i, "F")
         
+        for i in range(self.massGrid, self.maxMassShift+self.massGrid, self.massGrid):
+            self.out.branch("massShift%iMeVUp" % i, "F")
+            self.out.branch("massShift%iMeVDown" % i, "F")
+        
     def initReaders(self, tree):
         self.LHEScaleWeight = tree.arrayReader("LHEScaleWeight")
         self.LHEPdfWeight = tree.arrayReader("LHEPdfWeight")
+        self.MEParamWeight = tree.arrayReader("LHEReweightingWeight")
         self._ttreereaderversion = tree._ttreereaderversion
         pass
 
@@ -46,6 +48,13 @@ class lheWeightsFlattener(Module):
         for i,varPair in enumerate([("05","05"), ("05","1"), ("05", "2"), ("1", "05"), \
                 ("1","1"), ("1","2"), ("2", "05"), ("2", "1"), ("2", "2")]):
             self.out.fillBranch("scaleWeightMuR%sMuF%s" % varPair, self.LHEScaleWeight[i*2])
+
+        for i in range(1, self.maxMassShift/self.massGrid+1):
+            # Correct the reference mass to the central value of the sample
+            corr = self.LHEScaleWeight[0]/self.MEParamWeight[self.cenMassWgt]
+            val = i*self.massGrid
+            self.out.fillBranch("massShift%iMeVUp" % val, corr*self.MEParamWeight[self.cenMassWgt+i])
+            self.out.fillBranch("massShift%iMeVDown" % val, corr*self.MEParamWeight[self.cenMassWgt-i])
 
         if len(self.LHEPdfWeight) < self.NumNNPDFWeights:
             raise RuntimeError("Found poorly formed LHE Scale weights")
