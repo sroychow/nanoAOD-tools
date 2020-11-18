@@ -4,6 +4,7 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection 
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
+
 ##Trigger object matching
 def matches_any(mu,trigs,R):
     for t in trigs:        
@@ -17,11 +18,14 @@ def isTriggerObjMatched(mu, trigs, R):
         if dR<=R: return True
     return False
 
+###NOTE: basic cut on pT, eta, dxy, dz
 def fiducial_muon(mu):
     return (abs(mu.eta)<2.4 and mu.pt>10 and abs(mu.dxy)<0.05 and abs(mu.dz)<0.2)
+
 ##NOTE: LooseId + iso
 def loose_muon_id(mu):
     return (fiducial_muon(mu) and mu.isPFcand and mu.pfRelIso04_all< 0.25 and mu.pt>10)
+
 ##NOTE: LooseId only
 def loose_muon_idonly(mu):
     return (fiducial_muon(mu) and mu.isPFcand and mu.pt>10)
@@ -29,12 +33,27 @@ def loose_muon_idonly(mu):
 ##NOTE: MediumId + iso
 def medium_muon_id(mu):
     return (fiducial_muon(mu) and mu.mediumId and mu.pfRelIso04_all<=0.15 and mu.pt>20)
+
 ##NOTE: MediumIdonly
 def medium_muon_idonly(mu):
     return (fiducial_muon(mu) and mu.mediumId and mu.pt>20)
+
 ##NOTE: MediumId + antiIsolated
 def medium_aiso_muon_id(mu):
     return (fiducial_muon(mu) and mu.mediumId and mu.pfRelIso04_all> 0.15 and mu.pt>20)
+
+##NOTE: Tag muon
+def tag_muon(mu):
+    return (fiducial_muon(mu) and mu.tightId and mu.pfRelIso04_all< 0.15 and mu.pt>30)
+
+##NOTE: Probe muon for trk->ID&ISO
+def probe_muon_Trk(mu):
+    return (abs(mu.eta)<2.4 and mu.pt>20 and abs(mu.dxy)<0.2 and abs(mu.dz)<0.5 and mu.isTracker)
+
+##NOTE: Probe muon for trk&ID&ISO->Trig
+def probe_muon_TrkIdIso(mu):
+    return (probe_muon_Trk(mu) and medium_muon_id(mu))
+
 
 ##Veto against electron
 def veto_electron_id(ele):
@@ -99,6 +118,15 @@ class preSelection(Module):
         self.out.branch("IsTObjmatched_mu1", "B", title="Is muon1 mathced to trigger obj")
         self.out.branch("IsTObjmatched_mu2", "B", title="Is muon2 matched to trigger obj")
 
+        self.out.branch("nPairTrk",       "I", title="")
+        self.out.branch("Idx_tagTrk",     "I", lenVar="nPairTrk", title="")
+        self.out.branch("Idx_probeTrk",   "I", lenVar="nPairTrk", title="")
+        self.out.branch("Is_passTrk",     "I", lenVar="nPairTrk", title="")
+        self.out.branch("nPairTrkIdIso",  "I", title="")
+        self.out.branch("Idx_tagTrkIdIso",   "I", lenVar="nPairTrkIdIso", title="")
+        self.out.branch("Idx_probeTrkIdIso", "I", lenVar="nPairTrkIdIso", title="")
+        self.out.branch("Is_passTrkIdIso",   "I", lenVar="nPairTrkIdIso", title="")
+
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -130,6 +158,7 @@ class preSelection(Module):
 
         # Muon selection
         all_muons = Collection(event, "Muon")
+
         ##This enumerate part should always be on all_muons
         loose_muons       = [ [mu,imu] for imu,mu in enumerate(all_muons) if loose_muon_id(mu) ]
         medium_muons      = [ [mu,imu] for imu,mu in enumerate(all_muons) if medium_muon_id(mu)]
@@ -184,7 +213,41 @@ class preSelection(Module):
         muon_trigs = [ trig for trig in all_trigs if trig.id==13 and ((trig.filterBits>>0 & 1 ) or (trig.filterBits>>1 & 1 ))]
         mtobj1=isTriggerObjMatched(all_muons[idx1], muon_trigs, R=0.3) if idx1 != -1 else False
         mtobj2=isTriggerObjMatched(all_muons[idx2], muon_trigs, R=0.3) if idx2 != -1 else False
-    
+
+        ##for tnp
+        tag_muons                = [ imu for imu,mu in enumerate(all_muons) if tag_muon(mu) and isTriggerObjMatched(all_muons[imu], muon_trigs, R=0.3) ]
+        probe_muons_Trk          = [ imu for imu,mu in enumerate(all_muons) if probe_muon_Trk(mu) ]
+        probe_muons_TrkIdIso     = [ imu for imu,mu in enumerate(all_muons) if probe_muon_TrkIdIso(mu) ]
+        probe_muons_TrkIdIsoTrig = [ imu for imu,mu in enumerate(all_muons) if probe_muon_TrkIdIso(mu) and isTriggerObjMatched(all_muons[imu], muon_trigs, R=0.3) ]
+
+        Idx_tagTrk   = []
+        Idx_probeTrk = []
+        Is_passTrk   = []
+        Idx_tagTrkIdIso   = []
+        Idx_probeTrkIdIso = []
+        Is_passTrkIdIso   = []
+        for tag in tag_muons:
+            for probe in probe_muons_Trk:
+                if probe!=tag:
+                    Idx_tagTrk.append(tag)
+                    Idx_probeTrk.append(probe)
+                    Is_passTrk.append( int(probe in probe_muons_TrkIdIso) )
+            for probe in probe_muons_TrkIdIso:
+                if probe!=tag:
+                    Idx_tagTrkIdIso.append(tag)
+                    Idx_probeTrkIdIso.append(probe)
+                    Is_passTrkIdIso.append( int(probe in probe_muons_TrkIdIsoTrig) )
+        nPairTrk = len(Idx_tagTrk)
+        nPairTrkIdIso = len(Idx_tagTrkIdIso)
+        self.out.fillBranch("nPairTrk", nPairTrk)
+        self.out.fillBranch("Idx_tagTrk", Idx_tagTrk)
+        self.out.fillBranch("Idx_probeTrk", Idx_probeTrk )
+        self.out.fillBranch("Is_passTrk", Is_passTrk )
+        self.out.fillBranch("nPairTrkIdIso", nPairTrkIdIso)
+        self.out.fillBranch("Idx_tagTrkIdIso", Idx_tagTrkIdIso)
+        self.out.fillBranch("Idx_probeTrkIdIso", Idx_probeTrkIdIso )
+        self.out.fillBranch("Is_passTrkIdIso", Is_passTrkIdIso )
+
         self.out.fillBranch("Idx_mu1", idx1)
         self.out.fillBranch("Idx_mu2", idx2)
         self.out.fillBranch("Vtype", event_flag)
@@ -198,7 +261,7 @@ class preSelection(Module):
             else:
                 return True
         
-        if (event_flag not in [0,1,2,3,4]) or not (HLT_pass24 or HLT_pass27): 
+        if (event_flag not in [0,1,2,3,4]) or not (HLT_pass24 or HLT_pass27) or not (nPairTrk>0 or nPairTrkIdIso>0): 
             return (False or self.passall)
 
         return True
