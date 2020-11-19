@@ -119,7 +119,7 @@ ifileMC = ""
 if dataYear==2016:
     #ifileMC="user/sroychow/UL2016NANOAODSIM/WplusJetsToMuNu_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/NanoAODv8/201028_170443/0000/SMP-RunIISummer16NanoAODv8-wmassNano-preVFP_130.root"
     ifileMC="mc/RunIISummer20UL16NanoAOD/DYJetsToMuMu_M-50_TuneCP5_13TeV-powhegMiNNLO-pythia8-photos/NANOAODSIM/106X_mcRun2_asymptotic_v13-v1/230000/11CB685D-173A-8B4C-8AC1-A720BD87CE91.root"
-    ifileMC="SMP-RunIISummer16NanoAODv8-wmassNano_default_numEvent1000.root"
+    ifileMC="SMP-RunIISummer16NanoAODv8-wmassNano_default_numEvent10000.root"
 elif dataYear==2017:
     ifileMC = "mc/RunIIFall17NanoAODv5/WJetsToLNu_Pt-50To100_TuneCP5_13TeV-amcatnloFXFX-pythia8/NANOAODSIM/PU2017_12Apr2018_Nano1June2019_102X_mc2017_realistic_v7-v1/20000/B1929C77-857F-CA47-B352-DE52C3D6F795.root"
 elif dataYear==2018:
