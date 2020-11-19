@@ -32,8 +32,8 @@ float WeightCalculatorFromHistogram::getWeight(float x, float y) const {
 
 float WeightCalculatorFromHistogram::getWeightErr(float x, float y) const {
   if(histogram_==NULL) {
-    std::cout << "ERROR! The weights input histogram is not loaded. Returning weight error 1!" << std::endl;
-    return 1.;
+    std::cout << "ERROR! The weights input histogram is not loaded. Returning weight 0!" << std::endl;
+    return 0.;
   }
   if(!histogram_->InheritsFrom("TH2")) {
     int bin = std::max(1, std::min(histogram_->GetNbinsX(), histogram_->GetXaxis()->FindBin(x)));
@@ -50,7 +50,7 @@ std::vector<float> WeightCalculatorFromHistogram::loadVals(TH1 *hist, bool norm)
   std::vector<float> vals;
   for(int i=0; i<nbins; ++i) {
     double bc=hist->GetBinContent(i);
-    double val = (i>0 && bc==0 && hist->GetBinContent(i-1)>0 && hist->GetBinContent(i+1)>0) ? 0.5*(hist->GetBinContent(i-1)+hist->GetBinContent(i+1)) : bc;
+    //double val = (i>0 && bc==0 && hist->GetBinContent(i-1)>0 && hist->GetBinContent(i+1)>0) ? 0.5*(hist->GetBinContent(i-1)+hist->GetBinContent(i+1)) : bc;
     vals.push_back(std::max(bc,0.));
   }
   if(verbose_) std::cout << "Normalization of " << hist->GetName() << ": " << hist->Integral() << std::endl;

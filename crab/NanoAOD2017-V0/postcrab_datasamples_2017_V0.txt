@@ -1,0 +1,5 @@
+/gpfs/ddn/srm/cms//store/user/bianchi/NanoAOD2017-V0/SingleMuon/Run2017B-Nano14Dec2018-v1/190312_151516/
+/gpfs/ddn/srm/cms//store/user/bianchi/NanoAOD2017-V0/SingleMuon/Run2017C-Nano14Dec2018-v1/190312_151551/
+/gpfs/ddn/srm/cms//store/user/bianchi/NanoAOD2017-V0/SingleMuon/Run2017D-Nano14Dec2018-v1/190312_151637/
+/gpfs/ddn/srm/cms//store/user/bianchi/NanoAOD2017-V0/SingleMuon/Run2017E-Nano14Dec2018-v1/190312_151730/
+/gpfs/ddn/srm/cms//store/user/bianchi/NanoAOD2017-V0/SingleMuon/Run2017F-Nano14Dec2018-v1/190312_151841/
