@@ -50,11 +50,9 @@ class lheWeightsFlattener(Module):
             self.out.fillBranch("scaleWeightMuR%sMuF%s" % varPair, self.LHEScaleWeight[i*2])
 
         for i in range(1, self.maxMassShift/self.massGrid+1):
-            # Correct the reference mass to the central value of the sample
-            corr = self.LHEScaleWeight[0]/self.MEParamWeight[self.cenMassWgt]
             val = i*self.massGrid
-            self.out.fillBranch("massShift%iMeVUp" % val, corr*self.MEParamWeight[self.cenMassWgt+i])
-            self.out.fillBranch("massShift%iMeVDown" % val, corr*self.MEParamWeight[self.cenMassWgt-i])
+            self.out.fillBranch("massShift%iMeVUp" % val, self.MEParamWeight[self.cenMassWgt+i])
+            self.out.fillBranch("massShift%iMeVDown" % val, self.MEParamWeight[self.cenMassWgt-i])
 
         if len(self.LHEPdfWeight) < self.NumNNPDFWeights:
             raise RuntimeError("Found poorly formed LHE Scale weights")

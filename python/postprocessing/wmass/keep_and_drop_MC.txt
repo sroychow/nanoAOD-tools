@@ -6,8 +6,6 @@ keep luminosityBlock*
 keep genWeight*
 keep Generator*
 keep GenPart*
-keep LHEPdfWeight*
-keep LHEScaleWeight*
 keep LHEWeight*
 keep PV*
 keep Muon*
@@ -36,3 +34,4 @@ keep *preFSR
 keep *dress
 keep scale*
 keep pdf*
+keep mass*
