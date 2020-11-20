@@ -44,7 +44,7 @@ def medium_aiso_muon_id(mu):
 
 ##NOTE: Tag muon
 def tag_muon(mu):
-    return (fiducial_muon(mu) and mu.tightId and mu.pfRelIso04_all< 0.15 and mu.pt>30)
+    return (fiducial_muon(mu) and mu.tightId and mu.pfRelIso04_all< 0.20 and mu.pt>26)
 
 ##NOTE: Probe muon for trk->Id&Iso
 def probe_muon_Trk(mu):
@@ -57,7 +57,6 @@ def probe_muon_TrkIdIso(mu):
 ##NOTE: Probe muon for trk&Id&IsoLoose->Trig
 def probe_muon_TrkIdIsoLoose(mu):
     return (probe_muon_Trk(mu) and loose_muon_id(mu))
-
 
 ##Veto against electron
 def veto_electron_id(ele):
