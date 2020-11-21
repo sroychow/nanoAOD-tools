@@ -6,23 +6,11 @@ ROOT.PyConfig.IgnoreCommandLineOptions = True
 
 from PhysicsTools.NanoAODTools.postprocessing.framework.datamodel import Collection
 from PhysicsTools.NanoAODTools.postprocessing.framework.eventloop import Module
-
-def getDeltaPhi(phi1, phi2):
-    diff = phi1-phi2
-    pi2 = 2.0 * math.pi
-    mpi = -1.0 * math.pi
-    while diff > math.pi:
-        diff -= pi2
-    while diff <= mpi:
-        diff += pi2
-    return diff
+from PhysicsTools.NanoAODTools.postprocessing.tools import deltaR
 
 def isTriggerObjMatched(mu, trigs, DR):
     for i,t in trigs:
-        deta = mu.eta - t.eta
-        dphi = getDeltaPhi(mu.phi, t.phi)
-        dR = math.sqrt(deta * deta + dphi * dphi)
-        if dR <= DR: 
+        if deltaR(mu.eta, mu.phi, t.eta, t.phi) <= DR:
             return (i,True)
     return (-1,False)
 
