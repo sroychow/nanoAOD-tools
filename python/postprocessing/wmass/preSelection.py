@@ -168,7 +168,8 @@ class preSelection(Module):
             if len(looseIdonly_muons)==2 and (looseIdonly_muons[0][0].charge + looseIdonly_muons[1][0].charge)== 0:
                 (idx1, idx2) = (looseIdonly_muons[0][1], looseIdonly_muons[1][1])
                 event_flag = 4
-                if looseIdonly_muons[0][0].pfRelIso04_all < 0.15 and looseIdonly_muons[1][0].pfRelIso04_all >= 0.15:
+                if (looseIdonly_muons[0][0].pfRelIso04_all < 0.15 and looseIdonly_muons[1][0].pfRelIso04_all >= 0.25) or \
+                   (looseIdonly_muons[1][0].pfRelIso04_all < 0.15 and looseIdonly_muons[0][0].pfRelIso04_all >= 0.25) :
                     event_subcat = 1
                 elif looseIdonly_muons[0][0].pfRelIso04_all >= 0.15 and looseIdonly_muons[1][0].pfRelIso04_all >= 0.15:
                     event_subcat = 2
