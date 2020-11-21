@@ -141,14 +141,14 @@ if isMC:
     else : input_files.append( inputFile )
     if (not genOnly and not trigOnly):
         modules = [puWeightProducer(), 
-                    preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
-                    prefireCorr(),
-                    jmeCorrections(),
-	                genLeptonSelectModule(),
-		            CSAngleModule(), 
-	                WproducerModule(),
-	                flattenLheWeightsModule(),
-                   ]
+                   preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
+                   prefireCorr(),
+                   jmeCorrections(),
+                   genLeptonSelectModule(),
+                   CSAngleModule(), 
+                   WproducerModule(),
+                   flattenLheWeightsModule(),
+        ]
         # add before recoZproducer
         if muonScaleRes!= None: modules.insert(3, muonScaleRes())
     elif genOnly: 
@@ -157,7 +157,8 @@ if isMC:
                    WproducerModule()
                ]
     elif trigOnly: 
-        modules = [puWeightProducer(),preSelection(isMC=True, passall=passall, dataYear=dataYear, trigOnly=True)]
+        modules = [puWeightProducer(),
+                   preSelection(isMC=True, passall=passall, dataYear=dataYear, trigOnly=True)]
     else:
         modules = []
 else:
