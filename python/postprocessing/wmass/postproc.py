@@ -20,6 +20,8 @@ from PhysicsTools.NanoAODTools.postprocessing.wmass.CSVariables import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.Wproducer import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.genLepSelection import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.lheWeightsFlattener import *
+from PhysicsTools.NanoAODTools.postprocessing.wmass.triggerMatchProducer import *
+from PhysicsTools.NanoAODTools.postprocessing.wmass.jetReCleaner import *
 
 class bcolors:
     HEADER = '\033[95m'
@@ -41,9 +43,12 @@ parser.add_argument('-dataYear',  '--dataYear', type=int, default=2016,   help="
 parser.add_argument('-jesUncert', '--jesUncert',type=str, default="Total",help="")
 parser.add_argument('-redojec',   '--redojec',  type=int, default=0,      help="")
 parser.add_argument('-runPeriod', '--runPeriod',type=str, default="B",    help="")
-parser.add_argument('-genOnly',    '--genOnly',type=int, default=0,    help="")
-parser.add_argument('-trigOnly',    '--trigOnly',type=int, default=0,    help="")
-parser.add_argument('-iFile',    '--iFile',type=str, default="",    help="")
+parser.add_argument('-genOnly',   '--genOnly',  type=int, default=0,      help="")
+parser.add_argument('-trigOnly',  '--trigOnly', type=int, default=0,      help="")
+parser.add_argument('-iFile',     '--iFile',    type=str, default="",     help="")
+parser.add_argument('-isTest',    '--isTest',   type=int, default=0,      help="run test modules, hardcoded inside")
+parser.add_argument('--customKeepDrop',         type=str, default="",     help="use this file for keep-drop")
+parser.add_argument('-o',         '--outDir',   type=str, default=".",    help="output directory")
 
 args = parser.parse_args()
 isMC      = args.isMC
@@ -56,8 +61,12 @@ redojec   = args.redojec
 jesUncert = args.jesUncert
 genOnly   = args.genOnly
 trigOnly  = args.trigOnly
-inputFile=args.iFile
- 
+inputFile = args.iFile
+isTest    = args.isTest
+customKeepDrop = args.customKeepDrop
+outDir = args.outDir 
+
+
 print "isMC =", bcolors.OKBLUE, isMC, bcolors.ENDC, \
     "genOnly =", bcolors.OKBLUE, genOnly, bcolors.ENDC, \
     "crab =", bcolors.OKBLUE, crab, bcolors.ENDC, \
@@ -125,9 +134,10 @@ elif dataYear==2018:
 
 ifileDATA = ""
 if not isMC: 
-    input_dir = 'root://xrootd.ba.infn.it//store/'
+    #input_dir = 'root://xrootd.ba.infn.it//store/'
     if dataYear==2016:
-        ifileDATA = "/data/Run2016C/SingleMuon/NANOAOD/Nano25Oct2019-v1/40000/F7FC207B-943C-3B48-9147-D83B838BE473.root"
+        #ifileDATA = "/eos/cms/store/data/Run2016H/SingleMuon/NANOAOD/Nano02Dec2019-v1/270000/062790E9-2D36-FF42-9525-BCD698324ED0.root"
+        ifileDATA = "data/Run2016H/SingleMuon/NANOAOD/Nano02Dec2019-v1/270000/062790E9-2D36-FF42-9525-BCD698324ED0.root"
     elif dataYear==2017:
         ifileDATA = "data/Run2017F/BTagCSV/NANOAOD/Nano1June2019-v1/40000/030D3C6F-240B-3247-961D-1A7C0922DC1F.root"
     elif dataYear==2018:
@@ -139,7 +149,13 @@ if isMC:
     if inputFile == '' :     #this will run on the hardcoded file above
         input_files.append( input_dir + ifileMC )
     else : input_files.append( inputFile )
-    if (not genOnly and not trigOnly):
+    if isTest:
+        modules = [#muTrigMatch,
+                   #jetReCleaner
+            muonTriggerMatchProducer(saveIdTriggerObject=False, deltaRforMatch=0.3, minNumberMatchedMuons=0),
+            JetReCleaner(label="Clean", jetCollection="Jet", particleCollection="Muon", deltaRforCleaning=0.4)
+        ]
+    elif (not genOnly and not trigOnly):
         modules = [puWeightProducer(), 
                    preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
                    prefireCorr(),
@@ -165,10 +181,17 @@ else:
     if inputFile == '' : #this will run on the hardcoded file above     
         input_files.append( input_dir + ifileDATA )
     else : input_files.append( inputFile )
-    modules = [preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 
-               ]
-    if jmeCorrections!=None: modules.insert(1,jmeCorrections())
-    if muonScaleRes!=None:   modules.insert(1, muonScaleRes())
+    if isTest:
+        modules = [#muTrigMatch,
+                   #jetReCleaner
+            muonTriggerMatchProducer(saveIdTriggerObject=False, deltaRforMatch=0.3, minNumberMatchedMuons=0),
+            JetReCleaner(label="Clean", jetCollection="Jet", particleCollection="Muon", deltaRforCleaning=0.4)
+        ]
+    else:
+        modules = [preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 
+        ]
+        if jmeCorrections!=None: modules.insert(1,jmeCorrections())
+        if muonScaleRes!=None:   modules.insert(1, muonScaleRes())
 
 treecut = ("Entry$<" + str(maxEvents) if maxEvents > 0 else None)
 kd_file = "keep_and_drop"
@@ -179,10 +202,14 @@ if isMC:
 else:
     kd_file += "_Data"
 kd_file += ".txt"
+if isTest:
+    kd_file = "keep_and_drop_TEST.txt"
+if customKeepDrop != "":
+    kd_file = customKeepDrop
 
 print "Keep drop file used:", kd_file
 
-p = PostProcessor(outputDir=".",  
+p = PostProcessor(outputDir=outDir,  
                   inputFiles=(input_files if crab==0 else inputFiles()),
                   cut=treecut,      
                   modules=modules,
@@ -195,4 +222,4 @@ p = PostProcessor(outputDir=".",
 p.run()
 
 print "DONE"
-os.system("ls -lR")
+#os.system("ls -lR")

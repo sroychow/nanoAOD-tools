@@ -9,7 +9,7 @@
 
 class JetReCleanerHelper {
  public:
-  typedef TTreeReaderValue<int>   rint;
+  typedef TTreeReaderValue<unsigned int> rint;
   typedef TTreeReaderArray<float> rfloats;
   typedef TTreeReaderArray<int> rints;
 

@@ -29,8 +29,8 @@ class JetReCleaner(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.initReaders(inputTree) # initReaders must be called in beginFile
         self.out = wrappedOutputTree
-        self.out.branch("n"+self.jetCollection+self.label, "I")
-        self.out.branch(self.jetCollection+self.label+"_"+self.jetidvar, "I")
+        self.out.branch("n"+self.jetCollection+self.label, "i") # I is Int_t, i is UInt_t
+        self.out.branch(self.jetCollection+self.label+"_"+self.jetidvar, "I", lenVar="n"+self.jetCollection+self.label)
         for V in self.vars:
             self.out.branch(self.jetCollection+self.label+"_"+V, "F", lenVar="n"+self.jetCollection+self.label)
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
