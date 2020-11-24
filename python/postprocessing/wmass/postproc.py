@@ -17,9 +17,23 @@ from PhysicsTools.NanoAODTools.postprocessing.modules.common.PrefireCorr import 
 
 from PhysicsTools.NanoAODTools.postprocessing.wmass.preSelection import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.CSVariables import *
-from PhysicsTools.NanoAODTools.postprocessing.wmass.Wproducer import *
+from PhysicsTools.NanoAODTools.postprocessing.wmass.Vproducer import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.genLepSelection import *
 from PhysicsTools.NanoAODTools.postprocessing.wmass.lheWeightsFlattener import *
+
+def makeDummyFile():
+    f = open('dummy_exec.sh', 'w')
+    f.write('''#!/bin/bash
+echo 'changing into proper directory'
+cd {pwd}
+echo 'performing cmsenv'
+eval $(scramv1 runtime -sh);
+echo 'now running command'
+echo python $*
+python $*'''.format(pwd=os.environ['PWD']))
+    f.close()
+
+    
 
 class bcolors:
     HEADER = '\033[95m'
@@ -32,18 +46,22 @@ class bcolors:
     UNDERLINE = '\033[4m'
 
 parser = argparse.ArgumentParser("")
-parser.add_argument('-jobNum',    '--jobNum',   type=int, default=1,      help="")
-parser.add_argument('-crab',      '--crab',     type=int, default=0,      help="")
-parser.add_argument('-passall',   '--passall',  type=int, default=0,      help="")
-parser.add_argument('-isMC',      '--isMC',     type=int, default=1,      help="")
-parser.add_argument('-maxEvents', '--maxEvents',type=int, default=-1,	  help="")
-parser.add_argument('-dataYear',  '--dataYear', type=int, default=2016,   help="")
-parser.add_argument('-jesUncert', '--jesUncert',type=str, default="Total",help="")
-parser.add_argument('-redojec',   '--redojec',  type=int, default=0,      help="")
-parser.add_argument('-runPeriod', '--runPeriod',type=str, default="B",    help="")
-parser.add_argument('-genOnly',    '--genOnly',type=int, default=0,    help="")
-parser.add_argument('-trigOnly',    '--trigOnly',type=int, default=0,    help="")
-parser.add_argument('-iFile',    '--iFile',type=str, default="",    help="")
+parser.add_argument('-jobNum'    , '--jobNum'    , type=int , default=1       , help="")
+parser.add_argument('-crab'      , '--crab'      , type=int , default=0       , help="")
+parser.add_argument('-passall'   , '--passall'   , type=int , default=0       , help="")
+parser.add_argument('-isMC'      , '--isMC'      , type=int , default=1       , help="")
+parser.add_argument('-maxEvents' , '--maxEvents' , type=int , default=-1      , help="")
+parser.add_argument('-dataYear'  , '--dataYear'  , type=int , default=2016    , help="")
+parser.add_argument('-jesUncert' , '--jesUncert' , type=str , default="Total" , help="")
+parser.add_argument('-redojec'   , '--redojec'   , type=int , default=0       , help="")
+parser.add_argument('-runPeriod' , '--runPeriod' , type=str , default="B"     , help="")
+parser.add_argument('-genOnly'   , '--genOnly'   , type=int , default=0       , help="")
+parser.add_argument('-trigOnly'  , '--trigOnly'  , type=int , default=0       , help="")
+parser.add_argument('-iFile'     , '--iFile'     , type=str , default=""      , help="")
+parser.add_argument('-outdir'    , '--outdir'    , type=str , default="./"    , help="")
+parser.add_argument('-condor'    , '--condor'    , type=int , default=0       , help="run on condor instead of locally or on crab")
+parser.add_argument('-dsdir'     , '--dsdir'     , type=str , default=""      , help="input directory of dataset, to be given with condor option!")
+parser.add_argument('-nfiles'    , '--nfiles'    , type=int , default=5       , help="number of files to run per condor job")
 
 args = parser.parse_args()
 isMC      = args.isMC
@@ -56,11 +74,13 @@ redojec   = args.redojec
 jesUncert = args.jesUncert
 genOnly   = args.genOnly
 trigOnly  = args.trigOnly
-inputFile=args.iFile
+inputFile = args.iFile
+outdir    = args.outdir
  
 print "isMC =", bcolors.OKBLUE, isMC, bcolors.ENDC, \
     "genOnly =", bcolors.OKBLUE, genOnly, bcolors.ENDC, \
     "crab =", bcolors.OKBLUE, crab, bcolors.ENDC, \
+    "condor =", bcolors.OKBLUE, args.condor, bcolors.ENDC, \
     "passall =", bcolors.OKBLUE, passall,  bcolors.ENDC, \
     "dataYear =",  bcolors.OKBLUE,  dataYear,  bcolors.ENDC, \
     "maxEvents =", bcolors.OKBLUE, maxEvents, bcolors.ENDC 
@@ -138,7 +158,7 @@ modules = []
 if isMC:
     if inputFile == '' :     #this will run on the hardcoded file above
         input_files.append( input_dir + ifileMC )
-    else : input_files.append( inputFile )
+    else : input_files.extend( inputFile.split(',') )
     if (not genOnly and not trigOnly):
         modules = [puWeightProducer(), 
                     preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
@@ -146,7 +166,7 @@ if isMC:
                     jmeCorrections(),
 	                genLeptonSelectModule(),
 		            CSAngleModule(), 
-	                WproducerModule(),
+	                VproducerModule(),
 	                flattenLheWeightsModule(),
                    ]
         # add before recoZproducer
@@ -154,7 +174,7 @@ if isMC:
     elif genOnly: 
         modules = [genLeptonSelectModule(),
                    CSAngleModule(),
-                   WproducerModule()
+                   VproducerModule()
                ]
     elif trigOnly: 
         modules = [puWeightProducer(),preSelection(isMC=True, passall=passall, dataYear=dataYear, trigOnly=True)]
@@ -163,7 +183,7 @@ if isMC:
 else:
     if inputFile == '' : #this will run on the hardcoded file above     
         input_files.append( input_dir + ifileDATA )
-    else : input_files.append( inputFile )
+    else : input_files.extend( inputFile.split(',') )
     modules = [preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 
                ]
     if jmeCorrections!=None: modules.insert(1,jmeCorrections())
@@ -181,17 +201,68 @@ kd_file += ".txt"
 
 print "Keep drop file used:", kd_file
 
-p = PostProcessor(outputDir=".",  
+if args.condor:
+    if not args.dsdir:
+        print 'if you run on condor, give a path which contains the dataset'
+        exit(1)
+
+    print 'making a condor setup...'
+    os.system('mkdir -p condor')
+
+    ## make sure this goes with xrootd
+    xrdindir  = args.dsdir
+    if '/eos/cms/store/' in xrdindir and not 'eoscms' in xrdindir:
+        xrdindir = 'root://eoscms.cern.ch/'
+    if '/eos/user/' in xrdindir and not 'eosuser' in xrdindir: ## works also with eos user
+        xrdindir = 'root://eosuser.cern.ch/'
+
+    ## get the list of files from the given
+    listoffiles = []
+    for root, dirnames, filenames in os.walk(args.indir):
+        for filename in filenames:
+            if '.root' in filename:
+                listoffiles.append(xrdindir+os.path.join(root, filename))
+
+    listoffilechunks = []
+    for ff in range(len(input_files)/args.nfiles+1):
+        listoffilechunks.append(input_files[ff*args.nfiles:args.nfiles*(ff+1)])
+
+    dm = 'mc' if isMC else 'data'
+    runperiod = ''
+    if dm == 'data':
+        runperiod = runPeriod
+    
+    makeDummyFile()
+    tmp_condor_filename = 'condor/condor_submit_{dm}{rp}.condor'.format(dm=dm,rp=runperiod)
+    tmp_condor = open(tmp_condor_filename,'w')
+    tmp_condor.write('''Executable = dummy_exec.sh
+use_x509userproxy = true
+getenv      = True
+environment = "LS_SUBCWD={here}"
+request_memory = 2000
++MaxRuntime = 20000 \n\n'''.format(here=os.environ['PWD']))
+    for il,fs in enumerate(listoffilechunks):
+        if not len(fs): continue
+        tmp_condor.write('arguments = postproc.py  --isMC={isMC} --dataYear={y} --passall={pa} -iFile {files} -outdir={od}\n'.format(isMC=isMC,y=dataYear, pa=passall, files=','.join(fs),od=outdir))
+        tmp_condor.write('''
+Log        = condor/log_condor_{dm}{rp}_chunk{ch}.log
+Output     = condor/log_condor_{dm}{rp}_chunk{ch}.out
+Error      = condor/log_condor_{dm}{rp}_chunk{ch}.error\n'''.format(ch=il,dm=dm,rp=runperiod))
+        tmp_condor.write('queue 1\n\n')                                                                                                                                                      
+    tmp_condor.close()
+
+else:
+    p = PostProcessor(outputDir=outdir,  
                   inputFiles=(input_files if crab==0 else inputFiles()),
                   cut=treecut,      
                   modules=modules,
                   provenance=True,
                   outputbranchsel=kd_file,
                   fwkJobReport=(False if crab==0 else True),
-                  jsonInput=(None if crab==0 else runsAndLumis()),
+                  jsonInput=(None if crab==0 else runsAndLumis()), ## marc: revisit this, i don't think i understand right now
                   compression="LZMA:9"
                   )
-p.run()
+    p.run()
 
 print "DONE"
 os.system("ls -lR")

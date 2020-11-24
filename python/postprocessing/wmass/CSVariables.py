@@ -56,12 +56,7 @@ class CSVariables(Module):
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
 
-        self.out.branch("CStheta_bare", "F")
-        self.out.branch("CStheta_dress", "F")
         self.out.branch("CStheta_preFSR", "F")
-
-        self.out.branch("CSphi_bare", "F")
-        self.out.branch("CSphi_dress", "F")
         self.out.branch("CSphi_preFSR", "F")
         
         
@@ -72,39 +67,19 @@ class CSVariables(Module):
         """process event, return True (go to next module) or False (fail, go to next event)"""
 
         genParticles = Collection(event, "GenPart")
-        genDressedLeptons = Collection(event,"GenDressedLepton")
 
         # reobtain the indices of the good muons and the neutrino
         
-        bareMuonIdx = event.GenPart_bareMuonIdx
-        NeutrinoIdx = event.GenPart_NeutrinoIdx
-        preFSRMuonIdx = event.GenPart_preFSRMuonIdx
-        dressMuonIdx = event.GenDressedLepton_dressMuonIdx
+        preFSRLepIdx1 = event.GenPart_preFSRLepIdx1
+        preFSRLepIdx2 = event.GenPart_preFSRLepIdx2
         
-        if bareMuonIdx >= 0 and NeutrinoIdx >= 0:
-            CStheta_bare, CSphi_bare = getCSangles(genParticles[bareMuonIdx], genParticles[NeutrinoIdx])
-        else:
-            CStheta_bare, CSphi_bare = -99., -99.
-
-        if preFSRMuonIdx >= 0 and NeutrinoIdx >= 0:
-            CStheta_preFSR, CSphi_preFSR = getCSangles(genParticles[preFSRMuonIdx], genParticles[NeutrinoIdx])
+        if preFSRLepIdx1 >= 0 and preFSRLepIdx2 >= 0:
+            CStheta_preFSR, CSphi_preFSR = getCSangles(genParticles[preFSRLepIdx1], genParticles[preFSRLepIdx2])
         else: 
             CStheta_preFSR, CSphi_preFSR = -99., -99.
 
-        if dressMuonIdx  >= 0 and NeutrinoIdx >= 0:
-            CStheta_dress, CSphi_dress = getCSangles(genDressedLeptons[dressMuonIdx], genParticles[NeutrinoIdx])
-        else:
-            CStheta_dress, CSphi_dress = -99., -99.
-
-        
-        self.out.fillBranch("CStheta_bare",CStheta_bare)
-        self.out.fillBranch("CSphi_bare",CSphi_bare)
-
         self.out.fillBranch("CStheta_preFSR",CStheta_preFSR)
         self.out.fillBranch("CSphi_preFSR",CSphi_preFSR)
-
-        self.out.fillBranch("CStheta_dress",CStheta_dress)
-        self.out.fillBranch("CSphi_dress",CSphi_dress)
 
         return True
 
