@@ -17,7 +17,7 @@ class puWeightProducer(Module):
                  verbose=False,
                  nvtx_var="Pileup_nTrueInt",
                  doSysVar=True,
-                 norm_to_targetArea=False, ## see WeightCalculatorFromHistogram.h for details
+                 normToTargetArea=False, ## see WeightCalculatorFromHistogram.h for details
      ):
         self.targeth = self.loadHisto(targetfile, targethist)
         if doSysVar:
@@ -40,7 +40,7 @@ class puWeightProducer(Module):
         self.verbose = verbose
         self.nvtxVar = nvtx_var
         self.doSysVar = doSysVar
-        self.norm_to_targetArea = norm_to_targetArea
+        self.normToTargetArea = normToTargetArea
 
         # Try to load module via python dictionaries
         try:
@@ -57,12 +57,6 @@ class puWeightProducer(Module):
                     ".L %s/src/PhysicsTools/NanoAODTools/src/WeightCalculatorFromHistogram.cc++"
                     % os.environ['CMSSW_BASE'])
             dummy = ROOT.WeightCalculatorFromHistogram
-        # force loading for tests
-        print("Load C++ Worker")
-        ROOT.gROOT.ProcessLine(
-            ".L %s/src/PhysicsTools/NanoAODTools/src/WeightCalculatorFromHistogram.cc++"
-            % os.environ['CMSSW_BASE'])
-
 
 
     def loadHisto(self, filename, hname):
@@ -90,16 +84,16 @@ class puWeightProducer(Module):
                 self.myh.Write()
         self._worker = ROOT.WeightCalculatorFromHistogram(
             self.myh, self.targeth, self.norm, self.fixLargeWeights,
-            self.verbose, self.norm_to_targetArea)
+            self.verbose, self.normToTargetArea)
         self.out = wrappedOutputTree
         self.out.branch(self.name, "F")
         if self.doSysVar:
             self._worker_plus = ROOT.WeightCalculatorFromHistogram(
                 self.myh, self.targeth_plus, self.norm, self.fixLargeWeights,
-                self.verbose, self.norm_to_targetArea)
+                self.verbose, self.normToTargetArea)
             self._worker_minus = ROOT.WeightCalculatorFromHistogram(
                 self.myh, self.targeth_minus, self.norm, self.fixLargeWeights,
-                self.verbose, self.norm_to_targetArea)
+                self.verbose, self.normToTargetArea)
             self.out.branch(self.name + "Up", "F")
             self.out.branch(self.name + "Down", "F")
 
@@ -141,7 +135,7 @@ puWeight_UL2016_allData = lambda: puWeightProducer(pufile_mc_UL2016,
                                                    name="puWeight_allData",
                                                    verbose=False,
                                                    doSysVar=False,
-                                                   norm_to_targetArea=True)
+                                                   normToTargetArea=True)
 puWeight_UL2016_preVFP = lambda: puWeightProducer(pufile_mc_UL2016,
                                                   pufile_data_UL2016_preVFP,
                                                   "Pileup_nTrueInt_Wplus_preVFP", # MC profile same for pre and postVFP (pick histogram with more stat)
@@ -149,7 +143,7 @@ puWeight_UL2016_preVFP = lambda: puWeightProducer(pufile_mc_UL2016,
                                                   name="puWeight",  # use same var name as for postVFP, just run producer with proper configuration
                                                   verbose=False,
                                                   doSysVar=False,
-                                                  norm_to_targetArea=True)
+                                                  normToTargetArea=True)
 puWeight_UL2016_postVFP = lambda: puWeightProducer(pufile_mc_UL2016,
                                                    pufile_data_UL2016_postVFP,
                                                    "Pileup_nTrueInt_Wplus_preVFP", # MC profile same for pre and postVFP (pick histogram with more stat)
@@ -157,7 +151,7 @@ puWeight_UL2016_postVFP = lambda: puWeightProducer(pufile_mc_UL2016,
                                                    name="puWeight", # use same var name as for preVFP, just run producer with proper configuration
                                                    verbose=False,
                                                    doSysVar=False,
-                                                   norm_to_targetArea=True)
+                                                   normToTargetArea=True)
 
 
 

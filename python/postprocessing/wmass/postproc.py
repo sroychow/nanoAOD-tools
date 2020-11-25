@@ -49,6 +49,8 @@ parser.add_argument('-iFile',     '--iFile',    type=str, default="",     help="
 parser.add_argument('-isTest',    '--isTest',   type=int, default=0,      help="run test modules, hardcoded inside")
 parser.add_argument('--customKeepDrop',         type=str, default="",     help="use this file for keep-drop")
 parser.add_argument('-o',         '--outDir',   type=str, default=".",    help="output directory")
+parser.add_argument('-eraVFP',    '--eraVFP',   type=str, default="",     help="Specify one key in ['preVFP','postVFP'] to run on UL2016 MC samples. Only works with --isMC and --dataYear 2016")
+
 
 args = parser.parse_args()
 isMC      = args.isMC
@@ -65,6 +67,7 @@ inputFile = args.iFile
 isTest    = args.isTest
 customKeepDrop = args.customKeepDrop
 outDir = args.outDir 
+eraVFP = args.eraVFP
 
 
 print "isMC =", bcolors.OKBLUE, isMC, bcolors.ENDC, \
@@ -80,6 +83,11 @@ if genOnly and not isMC:
 if trigOnly and not isMC:
     print "Cannot run with --trigOnly=1 option and data simultaneously"
     exit(1)
+if isMC and dataYear == 2016:
+    if eraVFP not in ['preVFP', 'postVFP']:
+        print "Have to specify VFP era when running on 2016 MC using --eraVFP (preVFP|postVFP)"
+        exit(1)
+        
 
 # run with crab
 if crab:
@@ -95,7 +103,8 @@ jmeCorrections = createJMECorrector(isMC=isMC, dataYear=dataYear, runPeriod=runP
                                     saveMETUncs=['T1', 'T1Smear'])
 ################################################ PU
 #pu reweight modules
-puWeightProducer = puWeight_2016
+puWeightProducer_allData = puWeight_UL2016_allData
+puWeightProducer         = puWeight_UL2016_postVFP if eraVFP == "postVFP" else puWeight_UL2016_preVFP
 if dataYear==2017:
     puWeightProducer = puWeight_2017
 elif dataYear==2018:
@@ -150,8 +159,6 @@ if isMC:
         input_files.append( input_dir + ifileMC )
     else : input_files.append( inputFile )
     if isTest:
-        puWeightProducer_allData = puWeight_UL2016_allData
-        puWeightProducer     = puWeight_UL2016_postVFP 
         modules = [#muTrigMatch,
                    #jetReCleaner
             puWeightProducer_allData(),
@@ -160,7 +167,8 @@ if isMC:
             JetReCleaner(label="Clean", jetCollection="Jet", particleCollection="Muon", deltaRforCleaning=0.4)
         ]
     elif (not genOnly and not trigOnly):
-        modules = [puWeightProducer(), 
+        modules = [puWeightProducer_allData(),
+                   puWeightProducer(),
                    preSelection(isMC=isMC, passall=passall, dataYear=dataYear),  
                    prefireCorr(),
                    jmeCorrections(),
@@ -177,7 +185,8 @@ if isMC:
                    WproducerModule()
                ]
     elif trigOnly: 
-        modules = [puWeightProducer(),
+        modules = [puWeightProducer_allData(),
+                   puWeightProducer(),
                    preSelection(isMC=True, passall=passall, dataYear=dataYear, trigOnly=True)]
     else:
         modules = []
