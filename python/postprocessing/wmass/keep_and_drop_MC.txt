@@ -6,8 +6,6 @@ keep luminosityBlock*
 keep genWeight*
 keep Generator*
 keep GenPart*
-keep LHEPdfWeight*
-keep LHEScaleWeight*
 keep LHEWeight*
 keep PV*
 keep Muon*
@@ -37,3 +35,6 @@ keep nPair*
 keep Idx_tag*
 keep Idx_probe*
 keep Is_pass*
+keep scale*
+keep pdf*
+keep mass*
