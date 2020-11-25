@@ -150,8 +150,12 @@ if isMC:
         input_files.append( input_dir + ifileMC )
     else : input_files.append( inputFile )
     if isTest:
+        puWeightProducer_allData = puWeight_UL2016_allData
+        puWeightProducer     = puWeight_UL2016_postVFP 
         modules = [#muTrigMatch,
                    #jetReCleaner
+            puWeightProducer_allData(),
+            puWeightProducer(),
             muonTriggerMatchProducer(saveIdTriggerObject=False, deltaRforMatch=0.3, minNumberMatchedMuons=0),
             JetReCleaner(label="Clean", jetCollection="Jet", particleCollection="Muon", deltaRforCleaning=0.4)
         ]
