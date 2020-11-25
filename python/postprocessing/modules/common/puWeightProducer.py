@@ -122,11 +122,11 @@ class puWeightProducer(Module):
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
 
-pileupProfilesDir_2016     = "%s/src/PhysicsTools/NanoAODTools/python/postprocessing/wmass/pileupProfiles/" % os.environ['CMSSW_BASE']
-pufile_mc_UL2016           = pileupProfilesDir_2016 + "MyMCPileupHistogram_2016Legacy_noGenWeights_preAndPostVFP.root"
-pufile_data_UL2016_allData = pileupProfilesDir_2016 + "MyDataPileupHistogram_2016Legacy_all2016.root"
-pufile_data_UL2016_preVFP  = pileupProfilesDir_2016 + "MyDataPileupHistogram_2016Legacy_upTo2016FwithHIPM.root"
-pufile_data_UL2016_postVFP = pileupProfilesDir_2016 + "MyDataPileupHistogram_2016Legacy_FpostHIPMandGH.root"
+pileupProfilesDir_2016     = "%s/src/PhysicsTools/NanoAODTools/python/postprocessing/data/pileup/" % os.environ['CMSSW_BASE']
+pufile_mc_UL2016           = pileupProfilesDir_2016 + "PileupMC_2016Legacy.root"
+pufile_data_UL2016_allData = pileupProfilesDir_2016 + "PileupData_2016Legacy_all2016.root"
+pufile_data_UL2016_preVFP  = pileupProfilesDir_2016 + "PileupData_2016Legacy_upTo2016FwithHIPM.root"
+pufile_data_UL2016_postVFP = pileupProfilesDir_2016 + "PileupData_2016Legacy_FpostHIPMandGH.root"
 
 puWeight_UL2016_allData = lambda: puWeightProducer(pufile_mc_UL2016,
                                                    pufile_data_UL2016_allData,
