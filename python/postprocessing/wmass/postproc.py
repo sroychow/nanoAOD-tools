@@ -121,7 +121,7 @@ elif dataYear==2018:
     muonScaleRes = muonScaleRes2018
     #print bcolors.OKBLUE, "No module %s will be run" % "muonScaleRes", bcolors.ENDC
 ################################################ GEN
-Wtypes = ['bare', 'preFSR', 'dress']
+Wtypes = ['bare', 'preFSR', 'dress'] ## this isn't used... good, because bare and dress no longer exists
 ################################################PREFIRE Weights
 jetROOT='L1prefiring_jetpt_2016BtoH'
 photonROOT='L1prefiring_photonpt_2016BtoH'
@@ -218,7 +218,7 @@ if args.condor:
 
     ## get the list of files from the given
     listoffiles = []
-    for root, dirnames, filenames in os.walk(args.indir):
+    for root, dirnames, filenames in os.walk(args.dsdir):
         for filename in filenames:
             if '.root' in filename:
                 listoffiles.append(xrdindir+os.path.join(root, filename))
