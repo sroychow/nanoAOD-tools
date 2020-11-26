@@ -243,7 +243,7 @@ request_memory = 2000
 +MaxRuntime = 20000 \n\n'''.format(here=os.environ['PWD']))
     for il,fs in enumerate(listoffilechunks):
         if not len(fs): continue
-        tmp_condor.write('arguments = postproc.py  --isMC={isMC} --dataYear={y} --passall={pa} -iFile {files} -outdir={od}\n'.format(isMC=isMC,y=dataYear, pa=passall, files=','.join(fs),od=outdir))
+        tmp_condor.write('arguments = postproc.py  --isMC={isMC} --dataYear={y} --passall={pa} -iFile={files} -outdir={od}\n'.format(isMC=isMC,y=dataYear, pa=passall, files=','.join(fs),od=outdir))
         tmp_condor.write('''
 Log        = condor/log_condor_{dm}{rp}_chunk{ch}.log
 Output     = condor/log_condor_{dm}{rp}_chunk{ch}.out
