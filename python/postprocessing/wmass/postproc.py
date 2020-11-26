@@ -159,12 +159,10 @@ if isMC:
         input_files.append( input_dir + ifileMC )
     else : input_files.append( inputFile )
     if isTest:
-        modules = [#muTrigMatch,
-                   #jetReCleaner
-            puWeightProducer_allData(),
-            puWeightProducer(),
-            muonTriggerMatchProducer(saveIdTriggerObject=False, deltaRforMatch=0.3, minNumberMatchedMuons=0),
-            JetReCleaner(label="Clean", jetCollection="Jet", particleCollection="Muon", deltaRforCleaning=0.4)
+        modules = [puWeightProducer_allData(),
+                   puWeightProducer(),
+                   muonTriggerMatchProducer(saveIdTriggerObject=False, deltaRforMatch=0.3, minNumberMatchedMuons=0),
+                   JetReCleaner(label="Clean", jetCollection="Jet", particleCollection="Muon", deltaRforCleaning=0.4)
         ]
     elif (not genOnly and not trigOnly):
         modules = [puWeightProducer_allData(),
@@ -187,7 +185,8 @@ if isMC:
     elif trigOnly: 
         modules = [puWeightProducer_allData(),
                    puWeightProducer(),
-                   preSelection(isMC=True, passall=passall, dataYear=dataYear, trigOnly=True)]
+                   preSelection(isMC=True, passall=passall, dataYear=dataYear, trigOnly=True)
+        ]
     else:
         modules = []
 else:
@@ -195,10 +194,8 @@ else:
         input_files.append( input_dir + ifileDATA )
     else : input_files.append( inputFile )
     if isTest:
-        modules = [#muTrigMatch,
-                   #jetReCleaner
-            muonTriggerMatchProducer(saveIdTriggerObject=False, deltaRforMatch=0.3, minNumberMatchedMuons=0),
-            JetReCleaner(label="Clean", jetCollection="Jet", particleCollection="Muon", deltaRforCleaning=0.4)
+        modules = [muonTriggerMatchProducer(saveIdTriggerObject=False, deltaRforMatch=0.3, minNumberMatchedMuons=0),
+                   JetReCleaner(label="Clean", jetCollection="Jet", particleCollection="Muon", deltaRforCleaning=0.4)
         ]
     else:
         modules = [preSelection(isMC=isMC, passall=passall, dataYear=dataYear), 

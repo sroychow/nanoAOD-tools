@@ -38,18 +38,17 @@ class muonTriggerMatchProducer(Module):
         muon_trigs = [ (i,trig) for i,trig in enumerate(trgObjs) if trig.id == 13 and ((trig.filterBits>>0 & 1 ) or (trig.filterBits>>1 & 1 ))]
         trigMatch = []
         trigIdx   = []  # -1 if no match, else index of trigger object in TrigObj collection
+        nMatchedMuons = 0
         for m in muons:
             (i,isTrigMatch) = isTriggerObjMatched(m,muon_trigs,DR=self.deltaRforMatch)
             trigIdx.append(i)
             trigMatch.append(isTrigMatch)
+            if isTrigMatch:
+                nMatchedMuons += 1
         self.out.fillBranch("Muon_hasTriggerMatch", trigMatch)
         if self.saveIdTriggerObject:
             self.out.fillBranch("Muon_trigObjIdx", trigIdx)
         
-        nMatchedMuons = 0
-        for t in trigMatch:
-            if t:
-                nMatchedMuons += 1
         if nMatchedMuons < self.minNumberMatchedMuons:
             return False
         else:
