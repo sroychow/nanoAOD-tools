@@ -24,14 +24,10 @@ keep MET_filters
 keep nVetoElectrons
 keep IsTObjmatched_mu1
 keep IsTObjmatched_mu2
-keep GenPart_bareMuonIdx
-keep GenPart_preFSRMuonIdx
-keep GenPart_NeutrinoIdx
-keep GenDressedLepton_dressMuonIdx
+keep GenPart_preFSRLepIdx1
+keep GenPart_preFSRLepIdx1
 keep genVtype
-keep *bare
 keep *preFSR
-keep *dress
 keep scale*
 keep pdf*
 keep mass*

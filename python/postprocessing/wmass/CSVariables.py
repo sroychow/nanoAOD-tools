@@ -12,12 +12,12 @@ def getCSangles(muon, neutrino):
     	n = ROOT.TLorentzVector()
     	w = ROOT.TLorentzVector()
     	
-    	m.SetPtEtaPhiM(muon.pt, muon.eta, muon.phi, 0.105)
-        n.SetPtEtaPhiM(neutrino.pt, neutrino.eta, neutrino.phi, 0.)
+    	m.SetPtEtaPhiM(muon.pt, muon.eta, muon.phi, muon.mass) #0.105)
+        n.SetPtEtaPhiM(neutrino.pt, neutrino.eta, neutrino.phi, neutrino.mass)#0.)
   		
         w = m + n
 
-        sign  = abs(w.Z())/w.Z()
+        sign  = abs(w.Z())/w.Z() if w.Z() else 0
         
         ProtonMass = 0.938
         BeamEnergy = 6500.000
