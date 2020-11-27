@@ -13,10 +13,8 @@ class leptonSelection(Module):
         pass
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-        self.out.branch("GenPart_bareMuonIdx", "I")
-        self.out.branch("GenPart_preFSRMuonIdx", "I")
-        self.out.branch("GenPart_NeutrinoIdx", "I")
-        self.out.branch("GenDressedLepton_dressMuonIdx", "I")
+        self.out.branch("GenPart_preFSRLepIdx1", "I")
+        self.out.branch("GenPart_preFSRLepIdx2", "I")
         self.out.branch("genVtype", "I")
         
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
@@ -24,74 +22,68 @@ class leptonSelection(Module):
     def analyze(self, event):
         """process event, return True (go to next module) or False (fail, go to next event)"""
 
-        ############################################## bare and preFSR muon selection from GenPart collection
         genParticles = Collection(event, "GenPart")
 
-        baremuons =[]
-        neutrini =[]
+        status746leptons = []
+        otherleptons = []
+        prefsrleptons =[]
         myIdx = -99
         myNuIdx = -99
         
         for i,g in enumerate(genParticles) :
-            if not ((g.statusFlags & (1 << 0)) and g.status==1 ): continue
-            if abs(g.pdgId)==13: baremuons.append((i,g))# muon is prompt
-            if abs(g.pdgId) in [12, 14, 16]: neutrini.append((i,g)) # neutrino is prompt and don't explicitly ask for neutrino flavour
-            
-        #look at the flavour of the highest pt neutrino to decide if accept or not the event
-        neutrini.sort(key = lambda x: x[1].pt, reverse=True )
-        #if not abs(neutrini[0][1].pdgId) == 14: return False
+            if ( abs(g.pdgId) < 11 or abs(g.pdgId) > 16 or g.genPartIdxMother < 0): ## only look at leptons. genPartIdx sometimes -1 for low-pt electrons
+                continue
+            if (abs(genParticles[g.genPartIdxMother].pdgId) in [23, 24]): ## this works for the new powheg samples
+                if (g.status == 746):  ## status 746 is pre photos FSR in new powheg samples. so if they exist we want those.
+                    status746leptons.append( (i,g) )
+                else: # if they don't exist, we move to any leptons that have the W/Z as mother
+                    otherleptons.append( (i,g) )
+            else: ## in madgraph5_aMC@NLO there are some events without a W/Z, those have status 23 leptons (tested on >1M events)
+                if (g.status == 23):
+                    otherleptons.append( (i,g) )
 
-        baremuons.sort(key = lambda x: x[1].pt, reverse=True ) #order by pt in decreasing order
-        if len(baremuons) > 0:
-            myIdx = baremuons[0][0]
-        gVtype=-99
-        if len(neutrini) > 0:
-            gVtype = neutrini[0][1].pdgId 
-            myNuIdx = neutrini[0][0]
+            ## this code isn't used after all...
+            #elif (g.status == 1 and ( (g.statusFlags  >> 8) & 1)): ## if those don't exist, take status 1 and the correct status flag
+            #    otherleptons.append( (i,g) )
+            
+        if   (len(status746leptons)) == 2:
+            prefsrleptons=status746leptons
+        elif (len(status746leptons) == 1 and len(otherleptons) == 1):
+            prefsrleptons=status746leptons+otherleptons
+        elif (len(status746leptons) == 0 and len(otherleptons) == 2):
+            prefsrleptons=otherleptons
+
+        prefsrleptons.sort(key = lambda x: x[1].pt, reverse=True ) #order by pt in decreasing order
+        if not len(prefsrleptons) == 2:
+            print 'found', len(prefsrleptons), 'leptons'
+            print 'did not find exactly 2 proper leptons. check your code!'
+            for (i,g) in status746leptons+otherleptons:
+                print g.pdgId, g.pt, g.eta, g.status, g.statusFlags, genParticles[g.genPartIdxMother].pdgId
+
+        ## save signed 11, 13, or 15 for the Vtype
+        pdg1, pdg2 = prefsrleptons[0][1].pdgId, prefsrleptons[1][1].pdgId
+
+        ## get sign of the odd-pdgid lepton and multiply by -1 to get the charge of the boson
+        vcharge = -1*pdg1/abs(pdg1) if pdg1%2 else -1*pdg2/abs(pdg2)
+
+        ## for the Z this will save the charge of the highest pT lepton. which is fair enough
+        ## for splitting the dataset in two charges at random. if desired, uncomment the following
+        ## two lines to save the charge as positive...
+        ## if pdg1 == -1*pdg2: ## for the Z define charge as 1
+        ##     vcharge = 1
+        gVtype = vcharge*int((abs(pdg1)+abs(pdg2))/2.)
+
+        ## some printouts for debugging
+        ## print('======')
+        ## for (i,g) in status746leptons+otherleptons:
+        ##     print g.pdgId, g.pt, g.eta, g.status, g.statusFlags, genParticles[g.genPartIdxMother].pdgId
 
         self.out.fillBranch("genVtype", gVtype)
 
-        self.out.fillBranch("GenPart_bareMuonIdx",myIdx)
-        self.out.fillBranch("GenPart_NeutrinoIdx", myNuIdx)
+        self.out.fillBranch("GenPart_preFSRLepIdx1", prefsrleptons[0][0] if abs(prefsrleptons[0][1].pdgId) < 0 else prefsrleptons[1][0])
+        self.out.fillBranch("GenPart_preFSRLepIdx2", prefsrleptons[1][0] if abs(prefsrleptons[0][1].pdgId) < 0 else prefsrleptons[0][0])
         
-        muons =[]
-        myIdx = -99
-        
-        for i,g in enumerate(genParticles) :
-            if abs(g.pdgId)==13 and g.status==1 and (g.statusFlags & (1 << 8)) and (g.statusFlags & (1 << 0)): 
-                muons.append((i,g)) # muon is fromHardProcess
 
-        if len(muons)>0:
-            muons.sort(key = lambda x: x[1].pt, reverse=True ) #order by pt in decreasing order
-            myIdx = muons[0][0]
-            myMuon = genParticles[myIdx]
-            
-            if myMuon.genPartIdxMother > 0:
-                while (genParticles[myMuon.genPartIdxMother].pdgId == myMuon.pdgId): # the muon has a muon as mother
-                    if (genParticles[myMuon.genPartIdxMother].statusFlags & (1 << 14)): # muon is LastCopyBeforeFSR
-                        myIdx = myMuon.genPartIdxMother
-                        break
-                    
-                    myMuon = genParticles[myMuon.genPartIdxMother]
-                    if myMuon.genPartIdxMother < 0:
-                        break 
-                    
-        self.out.fillBranch("GenPart_preFSRMuonIdx",myIdx)
-
-        ############################################## dressed muon selection from GenDressedLepton collection
-        genDressedLeptons = Collection(event,"GenDressedLepton")
-
-        myIdx = -99
-        dressmuons = []
-        for i,l in enumerate(genDressedLeptons) :
-            if abs(l.pdgId)==13: dressmuons.append((i,l))
-        
-        if len(dressmuons)>0:
-            dressmuons.sort(key = lambda x: x[1].pt, reverse=True ) #order by pt in decreasing order
-            myIdx = dressmuons[0][0]
-
-        self.out.fillBranch("GenDressedLepton_dressMuonIdx",myIdx)
-        
         return True
 
 
