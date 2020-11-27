@@ -16,7 +16,8 @@ class puWeightProducer(Module):
                  norm=True,
                  verbose=False,
                  nvtx_var="Pileup_nTrueInt",
-                 doSysVar=True
+                 doSysVar=True,
+                 normToTargetArea=False, ## see WeightCalculatorFromHistogram.h for details
      ):
         self.targeth = self.loadHisto(targetfile, targethist)
         if doSysVar:
@@ -39,6 +40,7 @@ class puWeightProducer(Module):
         self.verbose = verbose
         self.nvtxVar = nvtx_var
         self.doSysVar = doSysVar
+        self.normToTargetArea = normToTargetArea
 
         # Try to load module via python dictionaries
         try:
@@ -49,13 +51,13 @@ class puWeightProducer(Module):
         # same CMSSW directory
         except Exception as e:
             print("Could not load module via python, trying via ROOT" + str(e))
-            if "/WeightCalculatorFromHistogram_cc.so" not in ROOT.gSystem.GetLibraries(
-            ):
+            if "/WeightCalculatorFromHistogram_cc.so" not in ROOT.gSystem.GetLibraries():
                 print("Load C++ Worker")
                 ROOT.gROOT.ProcessLine(
                     ".L %s/src/PhysicsTools/NanoAODTools/src/WeightCalculatorFromHistogram.cc++"
                     % os.environ['CMSSW_BASE'])
             dummy = ROOT.WeightCalculatorFromHistogram
+
 
     def loadHisto(self, filename, hname):
         tf = ROOT.TFile.Open(filename)
@@ -82,16 +84,16 @@ class puWeightProducer(Module):
                 self.myh.Write()
         self._worker = ROOT.WeightCalculatorFromHistogram(
             self.myh, self.targeth, self.norm, self.fixLargeWeights,
-            self.verbose)
+            self.verbose, self.normToTargetArea)
         self.out = wrappedOutputTree
         self.out.branch(self.name, "F")
         if self.doSysVar:
             self._worker_plus = ROOT.WeightCalculatorFromHistogram(
                 self.myh, self.targeth_plus, self.norm, self.fixLargeWeights,
-                self.verbose)
+                self.verbose, self.normToTargetArea)
             self._worker_minus = ROOT.WeightCalculatorFromHistogram(
                 self.myh, self.targeth_minus, self.norm, self.fixLargeWeights,
-                self.verbose)
+                self.verbose, self.normToTargetArea)
             self.out.branch(self.name + "Up", "F")
             self.out.branch(self.name + "Down", "F")
 
@@ -119,6 +121,39 @@ class puWeightProducer(Module):
 
 
 # define modules using the syntax 'name = lambda : constructor' to avoid having them loaded when not needed
+
+pileupProfilesDir_2016     = "%s/src/PhysicsTools/NanoAODTools/python/postprocessing/data/pileup/" % os.environ['CMSSW_BASE']
+pufile_mc_UL2016           = pileupProfilesDir_2016 + "PileupMC_2016Legacy.root"
+pufile_data_UL2016_allData = pileupProfilesDir_2016 + "PileupData_2016Legacy_all2016.root"
+pufile_data_UL2016_preVFP  = pileupProfilesDir_2016 + "PileupData_2016Legacy_upTo2016FwithHIPM.root"
+pufile_data_UL2016_postVFP = pileupProfilesDir_2016 + "PileupData_2016Legacy_FpostHIPMandGH.root"
+
+puWeight_UL2016_allData = lambda: puWeightProducer(pufile_mc_UL2016,
+                                                   pufile_data_UL2016_allData,
+                                                   "Pileup_nTrueInt_Wplus_preVFP", # MC profile same for pre and postVFP (pick histogram with more stat)
+                                                   "pileup",
+                                                   name="puWeight_allData",
+                                                   verbose=False,
+                                                   doSysVar=False,
+                                                   normToTargetArea=True)
+puWeight_UL2016_preVFP = lambda: puWeightProducer(pufile_mc_UL2016,
+                                                  pufile_data_UL2016_preVFP,
+                                                  "Pileup_nTrueInt_Wplus_preVFP", # MC profile same for pre and postVFP (pick histogram with more stat)
+                                                  "pileup",
+                                                  name="puWeight",  # use same var name as for postVFP, just run producer with proper configuration
+                                                  verbose=False,
+                                                  doSysVar=False,
+                                                  normToTargetArea=True)
+puWeight_UL2016_postVFP = lambda: puWeightProducer(pufile_mc_UL2016,
+                                                   pufile_data_UL2016_postVFP,
+                                                   "Pileup_nTrueInt_Wplus_preVFP", # MC profile same for pre and postVFP (pick histogram with more stat)
+                                                   "pileup",
+                                                   name="puWeight", # use same var name as for preVFP, just run producer with proper configuration
+                                                   verbose=False,
+                                                   doSysVar=False,
+                                                   normToTargetArea=True)
+
+
 
 pufile_mc2016 = "%s/src/PhysicsTools/NanoAODTools/python/postprocessing/data/pileup/pileup_profile_Summer16.root" % os.environ[
     'CMSSW_BASE']
