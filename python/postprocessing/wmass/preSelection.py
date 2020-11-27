@@ -119,22 +119,6 @@ class preSelection(Module):
         self.out.branch("Vtype_subcat", "I", title="0: OS-promptL/promptL; 1: SS-promptL/promptL; 2: OS-promptL/fakeL; 3: SS-promptL/fakeL; 4: OS-fakeL/fakeL; 5: SS-fakeL/fakeL")
         self.out.branch("MET_filters", "I", title="AND of all MET filters")
         self.out.branch("nVetoElectrons", "I", title="Number of veto electrons")
-        self.out.branch("IsTObjmatched_mu1", "B", title="Is muon1 mathced to trigger obj")
-        self.out.branch("IsTObjmatched_mu2", "B", title="Is muon2 matched to trigger obj")
-        self.out.branch("nPairTrk",       "I", title="Number of tag-and-probe pairs for trk->IdIso")
-        self.out.branch("Idx_tagTrk",     "I", lenVar="nPairTrk", title="Indices of tags for trk->IdIso")
-        self.out.branch("Idx_probeTrk",   "I", lenVar="nPairTrk", title="Indices of probes for trk->IdIso")
-        self.out.branch("Is_passTrkIdIso",     "I", lenVar="nPairTrk", title="Pass/Fail flag of probes for trk->IdIso")
-        self.out.branch("Is_passTrkIdIsoLoose","I", lenVar="nPairTrk", title="Pass/Fail flag of probes for trk->IdIsoLoose")
-        self.out.branch("nPairTrkIdIso",       "I", title="Number of tag-and-probe pairs for trk,Id,Iso->Trig")
-        self.out.branch("Idx_tagTrkIdIso",     "I", lenVar="nPairTrkIdIso", title="Indices of tags for trk,Id,Iso->Trig")
-        self.out.branch("Idx_probeTrkIdIso",   "I", lenVar="nPairTrkIdIso", title="Indices of probes for trk,Id,Iso->Trig")
-        self.out.branch("Is_passTrkIdIsoTrig",     "I", lenVar="nPairTrkIdIso", title="Pass/Fail flag of probes for trk,Id,Iso->Trig")
-        self.out.branch("nPairTrkIdIsoLoose",  "I", title="Number of tag-and-probe pairs for trk,Id,Iso Loose->Trig")
-        self.out.branch("Idx_tagTrkIdIsoLoose",     "I", lenVar="nPairTrkIdIsoLoose", title="Indices of tags for trk,Id,Iso Loose->Trig")
-        self.out.branch("Idx_probeTrkIdIsoLoose",   "I", lenVar="nPairTrkIdIsoLoose", title="Indices of probes for trk,Id,Iso Loose->Trig")
-        self.out.branch("Is_passTrkIdIsoLooseTrig",     "I", lenVar="nPairTrkIdIsoLoose", title="Pass/Fail flag of probes for trk,Id,Iso Loose->Trig")
-
 
     def endFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         pass
@@ -217,87 +201,23 @@ class preSelection(Module):
                 event_flag_subcat = -1                
 
         ##Selected muon trigger object matching
-        all_trigs = Collection(event, "TrigObj")
+        #all_trigs = Collection(event, "TrigObj")
         #v6 filter bits info: 1 = TrkIsoVVL, 2 = Iso, 4 = OverlapFilter PFTau, 8 = IsoTkMu for Muon
-        muon_trigs = [ trig for trig in all_trigs if trig.id==13 and ((trig.filterBits>>0 & 1 ) or (trig.filterBits>>1 & 1 ))]
-        mtobj1 = isTriggerObjMatched(all_muons[idx1], muon_trigs, R=0.3) if idx1 != -1 else False
-        mtobj2 = isTriggerObjMatched(all_muons[idx2], muon_trigs, R=0.3) if idx2 != -1 else False
+        #muon_trigs = [ trig for trig in all_trigs if trig.id==13 and ((trig.filterBits>>0 & 1 ) or (trig.filterBits>>1 & 1 ))]
 
         ##for tang-and-probe
-        tag_muons                = [ imu for imu,mu in enumerate(all_muons) if tag_muon(mu) and isTriggerObjMatched(all_muons[imu], muon_trigs, R=0.3) ]
-        probe_muons_Trk          = [ imu for imu,mu in enumerate(all_muons) if probe_muon_Trk(mu) ]
-        probe_muons_TrkIdIso     = [ imu for imu,mu in enumerate(all_muons) if probe_muon_TrkIdIso(mu) ]
-        probe_muons_TrkIdIsoTrig = [ imu for imu,mu in enumerate(all_muons) if probe_muon_TrkIdIso(mu) and isTriggerObjMatched(all_muons[imu], muon_trigs, R=0.3) ]
-
-        probe_muons_TrkIdIsoLoose     = [ imu for imu,mu in enumerate(all_muons) if probe_muon_TrkIdIsoLoose(mu) ]
-        probe_muons_TrkIdIsoLooseTrig = [ imu for imu,mu in enumerate(all_muons) if probe_muon_TrkIdIsoLoose(mu) and isTriggerObjMatched(all_muons[imu], muon_trigs, R=0.3) ]
-
-        Idx_tagTrk   = []
-        Idx_probeTrk = []
-        Is_passTrkIdIso   = []
-        Is_passTrkIdIsoLoose   = []
-        Idx_tagTrkIdIso   = []
-        Idx_probeTrkIdIso = []
-        Is_passTrkIdIsoTrig   = []
-        Idx_tagTrkIdIsoLoose   = []
-        Idx_probeTrkIdIsoLoose = []
-        Is_passTrkIdIsoLooseTrig   = []
-
-        for tag in tag_muons:
-            for probe in probe_muons_Trk:
-                if probe!=tag:
-                    Idx_tagTrk.append(tag)
-                    Idx_probeTrk.append(probe)
-                    Is_passTrkIdIso.append( int(probe in probe_muons_TrkIdIso) )
-                    Is_passTrkIdIsoLoose.append( int(probe in probe_muons_TrkIdIsoLoose) )
-            for probe in probe_muons_TrkIdIso:
-                if probe!=tag:
-                    Idx_tagTrkIdIso.append(tag)
-                    Idx_probeTrkIdIso.append(probe)
-                    Is_passTrkIdIsoTrig.append( int(probe in probe_muons_TrkIdIsoTrig) )
-            for probe in probe_muons_TrkIdIsoLoose:
-                if probe!=tag:
-                    Idx_tagTrkIdIsoLoose.append(tag)
-                    Idx_probeTrkIdIsoLoose.append(probe)
-                    Is_passTrkIdIsoLooseTrig.append( int(probe in probe_muons_TrkIdIsoLooseTrig) )
-
-        nPairTrk = len(Idx_tagTrk)
-        nPairTrkIdIso = len(Idx_tagTrkIdIso)
-        nPairTrkIdIsoLoose = len(Idx_tagTrkIdIsoLoose)
-
-        #Trk->IdIso & Trk->IdIsoLoose
-        self.out.fillBranch("nPairTrk", nPairTrk)
-        self.out.fillBranch("Idx_tagTrk", Idx_tagTrk)
-        self.out.fillBranch("Idx_probeTrk", Idx_probeTrk )
-        self.out.fillBranch("Is_passTrkIdIso", Is_passTrkIdIso )
-        self.out.fillBranch("Is_passTrkIdIsoLoose", Is_passTrkIdIsoLoose )
-
-        #Trk,IdIso->Trig
-        self.out.fillBranch("nPairTrkIdIso", nPairTrkIdIso)
-        self.out.fillBranch("Idx_tagTrkIdIso", Idx_tagTrkIdIso)
-        self.out.fillBranch("Idx_probeTrkIdIso", Idx_probeTrkIdIso )
-        self.out.fillBranch("Is_passTrkIdIsoTrig", Is_passTrkIdIsoTrig )
-
-        #Trk,IdIsoLoose->Trig
-        self.out.fillBranch("nPairTrkIdIsoLoose", nPairTrkIdIsoLoose)
-        self.out.fillBranch("Idx_tagTrkIdIsoLoose", Idx_tagTrkIdIsoLoose)
-        self.out.fillBranch("Idx_probeTrkIdIsoLoose", Idx_probeTrkIdIsoLoose )
-        self.out.fillBranch("Is_passTrkIdIsoLooseTrig", Is_passTrkIdIsoLooseTrig)
-
         self.out.fillBranch("Idx_mu1", idx1)
         self.out.fillBranch("Idx_mu2", idx2)
         self.out.fillBranch("Vtype", event_flag)
         self.out.fillBranch("Vtype_subcat", event_flag_subcat)
-        self.out.fillBranch("IsTObjmatched_mu1", mtobj1)
-        self.out.fillBranch("IsTObjmatched_mu2", mtobj2)
-        
+
         if self.trigOnly:
             if event_flag not in [0,1] :
                 return (False or self.passall)
             else:
                 return True
         
-        if not (event_flag in [0,1,2] or event_flag_subcat in [0,1,2,3,4,5] or HLT_pass24 or HLT_pass27 or nPairTrk>0 or nPairTrkIdIso>0 or nPairTrkIdIsoLoose>0): 
+        if not (HLT_pass24 or HLT_pass27): 
             return (False or self.passall)
 
         return True
