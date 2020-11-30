@@ -45,6 +45,9 @@ class leptonSelection(Module):
             ## this code isn't used after all...
             #elif (g.status == 1 and ( (g.statusFlags  >> 8) & 1)): ## if those don't exist, take status 1 and the correct status flag
             #    otherleptons.append( (i,g) )
+
+        if len(otherleptons) > 2:
+            otherleptons = [i for i in otherleptons if ((i[1].statusFlags >> 8 ) & 1)]
             
         if   (len(status746leptons)) == 2:
             prefsrleptons=status746leptons
