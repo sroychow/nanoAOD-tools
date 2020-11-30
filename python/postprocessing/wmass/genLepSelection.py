@@ -27,8 +27,6 @@ class leptonSelection(Module):
         status746leptons = []
         otherleptons = []
         prefsrleptons =[]
-        #myIdx = -99
-        #myNuIdx = -99
         gPartIdx1=-99
         gPartIdx2=-99
         
