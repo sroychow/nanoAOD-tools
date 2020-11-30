@@ -65,7 +65,7 @@ class leptonSelection(Module):
             for (i,g) in status746leptons+otherleptons:
                 print g.pdgId, g.pt, g.eta, g.status, g.statusFlags, genParticles[g.genPartIdxMother].pdgId
                 
-        gVtype=-99
+        gVtype=0
         ## save signed 11, 13, or 15 for the Vtype
         if len(prefsrleptons) == 0:
             pdg1, pdg2 = 0, 0
