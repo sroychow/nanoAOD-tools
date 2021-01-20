@@ -48,6 +48,7 @@ config.JobType.scriptExe = 'crab_script.sh'
 config.JobType.inputFiles = ['../python/postprocessing/ztojpsig/postproc.py', '../scripts/haddnano.py', '../python/postprocessing/ztojpsig/keep_and_drop_MC.txt', '../python/postprocessing/ztojpsig/keep_and_drop_DATA.txt']
 config.JobType.scriptArgs = ['crab=1', 'isMC='+('1' if isMC else '0'), 'dataYear='+str(dataYear), 'runPeriod=' + runPeriod ]
 config.JobType.sendPythonFolder	 = True
+config.JobType.allowUndistributedCMSSW = True
 config.section_("Data")
 config.Data.inputDataset = 'TEST'
 config.Data.inputDBS = dbs
@@ -121,6 +122,7 @@ if __name__ == '__main__':
         print 'scriptArgs:  ',config.JobType.scriptArgs        
         config.Data.inputDataset = dataset_inputDataset
         config.Data.unitsPerJob = dataset_unitsPerJob
+        config.General.workArea	= 'crab' + tag
         config.General.requestName = dataset.split('/')[1]+'_'+str(dataYear)+'_'+tag+'_task_'+str(n)
         config.Data.outputDatasetTag = dataset.split('/')[2]
         print 'requestName:  '+config.General.requestName
@@ -131,7 +133,7 @@ if __name__ == '__main__':
             crabCommand('submit', '--dryrun', config=config)
         elif run=='debug':            
             continue
-        crablog = open('crab_'+config.General.requestName+'/crab.log', 'r').readlines()
+        crablog = open('crab' + tag + '/crab_'+config.General.requestName+'/crab.log', 'r').readlines()
         crabloglines = [x.strip() for x in crablog]
         username = getUsernameFromCRIC()
         for crablogline in crabloglines:

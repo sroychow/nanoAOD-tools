@@ -6,10 +6,5 @@ keep PV*
 keep Muon*
 keep Photon*
 keep nVetoElectrons
-keep HLT_SingleMu24
-keep HLT_SingleMu27
-keep HLT_Dimuon25_Jpsi
-keep HLT_Mu17_Photon30_IsoCaloId
-keep HLT_DoubleMu20_7_Mass0to30_Photon23
-keep HLT_DoubleMu4_3_Jpsi
+keep HLT*
 keep TrigObj*

@@ -85,7 +85,7 @@ class preSelection(Module):
         pass
     def beginFile(self, inputFile, outputFile, inputTree, wrappedOutputTree):
         self.out = wrappedOutputTree
-
+        '''For now saving all HLT branches
         self.out.branch("HLT_SingleMu24", "B", title="Event passes OR of HLT triggers at 24 GeV")
 
         self.out.branch("HLT_SingleMu27", "B", title="Event passes OR of HLT triggers at 27 GeV")
@@ -97,7 +97,7 @@ class preSelection(Module):
         self.out.branch("HLT_DoubleMu20_7_Mass0to30_Photon23", "B", title="Event passes HLT_DoubleMu20_7_Mass0to30_Photon23")
 
         self.out.branch("HLT_DoubleMu4_3_Jpsi", "B", title="Event passes HLT_DoubleMu4_3_Jpsi")
-
+        '''
         self.out.branch("MET_filters", "I", title="AND of all MET filters")
         self.out.branch("nVetoElectrons", "I", title="Number of veto electrons")
         self.out.branch("MET_filters", "I", title="AND of all MET filters")
@@ -108,6 +108,7 @@ class preSelection(Module):
         """process event, return True (go to next module) or False (fail, go to next event)"""
 
         # Trigger bit
+        '''
         if self.isMC==False:
             triggers24_OR = ["IsoMu24", "IsoTkMu24"]
             triggers27_OR = ["IsoMu27"]
@@ -152,14 +153,13 @@ class preSelection(Module):
         self.out.fillBranch("HLT_Mu17_Photon30_IsoCaloId", int(HLT_passMu17_Photon30))
         self.out.fillBranch("HLT_DoubleMu20_7_Mass0to30_Photon23", int(HLT_DoubleMu20_7_Mass0to30_Photon23))
         self.out.fillBranch("HLT_DoubleMu4_3_Jpsi", int(HLT_DoubleMu4_3_Jpsi))
-
+        '''
        ##note-Ideally when running on data, should make sure atleast one of the trigges is fired
         
         # MET filters
         met_filters_AND = True
         for key,val in self.met_filters[self.dataYear].items():
             met_filters_AND &=  (not (val & (1 << (1-int(self.isMC)) )) or getattr(event, "Flag_"+key))
-
         self.out.fillBranch("MET_filters", int(met_filters_AND))
 
         # Muon selection
