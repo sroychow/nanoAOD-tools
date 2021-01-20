@@ -1,5 +1,4 @@
-from WMCore.Configuration import Configuration
-from CRABClient.UserUtilities import config, getUsernameFromSiteDB
+from CRABClient.UserUtilities import config, getUsernameFromCRIC
 import argparse
 import sys
 import subprocess
@@ -38,8 +37,7 @@ print "tag =", bcolors.OKGREEN, tag, bcolors.ENDC, \
     ", dataYear =", bcolors.OKGREEN, str(dataYear), bcolors.ENDC, \
     " => running on sample file:", bcolors.OKGREEN, samples, bcolors.ENDC
 
-config = Configuration()
-
+config = config()
 config.section_("General")
 config.General.requestName = 'TEST'
 config.General.transferLogs=True
@@ -47,7 +45,7 @@ config.section_("JobType")
 config.JobType.pluginName = 'Analysis'
 config.JobType.psetName = 'PSet.py'
 config.JobType.scriptExe = 'crab_script.sh'
-config.JobType.inputFiles = ['../python/postprocessing/ztojpsig/postproc.py', '../scripts/haddnano.py', '../python/postprocessing/ztojpsig/keep_and_drop_MC.txt', '../python/postprocessing/ztojpsig/keep_and_drop_Data.txt']
+config.JobType.inputFiles = ['../python/postprocessing/ztojpsig/postproc.py', '../scripts/haddnano.py', '../python/postprocessing/ztojpsig/keep_and_drop_MC.txt', '../python/postprocessing/ztojpsig/keep_and_drop_DATA.txt']
 config.JobType.scriptArgs = ['crab=1', 'isMC='+('1' if isMC else '0'), 'dataYear='+str(dataYear), 'runPeriod=' + runPeriod ]
 config.JobType.sendPythonFolder	 = True
 config.section_("Data")
@@ -70,7 +68,7 @@ if not isMC:
     else:
         config.Data.lumiMask = 'TEST'
     print "Using lumiMask", config.Data.lumiMask
-config.Data.outLFNDirBase = '/store/user/%s/NanoAOD%s-%s' % (getUsernameFromSiteDB(), str(dataYear), tag)
+config.Data.outLFNDirBase = '/store/user/%s/hzjpsigamma/NanoAOD%s-%s' % (getUsernameFromCRIC(), str(dataYear), tag)
 config.Data.publication = False
 config.Data.outputDatasetTag = 'TEST'
 config.section_("Site")
@@ -123,7 +121,7 @@ if __name__ == '__main__':
         print 'scriptArgs:  ',config.JobType.scriptArgs        
         config.Data.inputDataset = dataset_inputDataset
         config.Data.unitsPerJob = dataset_unitsPerJob
-        config.General.requestName = dataset.split('/')[1]+'_'+tag+'_task_'+str(n)
+        config.General.requestName = dataset.split('/')[1]+'_'+str(dataYear)+'_'+tag+'_task_'+str(n)
         config.Data.outputDatasetTag = dataset.split('/')[2]
         print 'requestName:  '+config.General.requestName
         print 'output  ===> ', bcolors.OKBLUE , config.Data.outLFNDirBase+'/'+dataset.split('/')[1]+'/'+config.Data.outputDatasetTag+'/' , bcolors.ENDC
@@ -135,7 +133,7 @@ if __name__ == '__main__':
             continue
         crablog = open('crab_'+config.General.requestName+'/crab.log', 'r').readlines()
         crabloglines = [x.strip() for x in crablog]
-        username = getUsernameFromSiteDB()
+        username = getUsernameFromCRIC()
         for crablogline in crabloglines:
             if 'Task name: ' in crablogline:
                 pos = crablogline.find('%s' % username)

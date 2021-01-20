@@ -123,12 +123,20 @@ class preSelection(Module):
             HLT_pass27 |= getattr(event, "HLT_"+hlt)
 
         HLT_passMu17_Photon30 = False
-        if hasattr(event, "HLT_Mu17_Photon30_IsoCaloId"):
-            HLT_passMu17_Photon30 = getattr(event, "HLT_Mu17_Photon30_IsoCaloId")
+
+        #For 2016, trigger name: HLT_Mu17_Photon30_CaloIdL_L1ISO
+        #For 2017m, trigger name:HLT_Mu17_Photon30_IsoCaloId
+        toSearch = "HLT_Mu17_Photon30_CaloIdL_L1ISO"
+        if self.dataYear == "2017": toSearch = "HLT_Mu17_Photon30_IsoCaloId"
+        if hasattr(event, toSearch):
+            HLT_passMu17_Photon30 = getattr(event, toSearch)
 
 	HLT_passDimu25_jpsi = False
-	if hasattr(event, "HLT_Dimuon25_Jpsi"):
-	    HLT_passDimu25_jpsi = getattr(event, "HLT_Dimuon25_Jpsi")
+        #check the threshold change, branch name remains the same
+        toSearch = "HLT_Dimuon20_Jpsi"
+        if self.dataYear == "2017" or self.dataYear == '2018': toSearch = "HLT_Dimuon25_Jpsi"
+	if hasattr(event, toSearch):
+	    HLT_passDimu25_jpsi = getattr(event, toSearch)
 
 	HLT_DoubleMu20_7_Mass0to30_Photon23 = False
 	if hasattr(event, "HLT_DoubleMu20_7_Mass0to30_Photon23"):
@@ -137,8 +145,6 @@ class preSelection(Module):
 	HLT_DoubleMu4_3_Jpsi = False
 	if hasattr(event, "HLT_DoubleMu4_3_Jpsi"):
 	    HLT_DoubleMu4_3_Jpsi = getattr(event, "HLT_DoubleMu4_3_Jpsi")
-
-
 
         self.out.fillBranch("HLT_SingleMu24", int(HLT_pass24))
         self.out.fillBranch("HLT_SingleMu27", int(HLT_pass27))
